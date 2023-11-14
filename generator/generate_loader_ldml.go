@@ -59,6 +59,7 @@ func BuildLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		Territory:   ldml.Identity.Territory.Type,
 		Territories: GetTerritories(cldr, ldml),
 		Currencies:  GetCurrencies(cldr, ldml),
+		TimeZones:   GetTimeZones(cldr, ldml),
 	}
 
 	if locale.IsTerritory() {
@@ -81,7 +82,6 @@ func AttachValidity(cldr *CLDR, supplemental *SupplementalData) {
 }
 
 func WriteGo(locale *Locale, w io.Writer) error {
-
 	fs := GetEmbedFS()
 
 	tpl := template.Must(template.ParseFS(fs, "templates/data.tmpl"))
@@ -90,6 +90,7 @@ func WriteGo(locale *Locale, w io.Writer) error {
 		"Locale":      locale.Code,
 		"Territories": locale.Territories,
 		"Currencies":  locale.Currencies,
+		"TimeZones":   locale.TimeZones,
 	}
 
 	return tpl.Execute(w, ctx)
@@ -115,6 +116,7 @@ type Locale struct {
 	Territory   string
 	Territories map[string]Territory
 	Currencies  map[string]Currency
+	TimeZones   map[string]TimeZone
 }
 
 func (locale *Locale) IsTerritory() bool {
@@ -132,6 +134,11 @@ type Territory struct {
 }
 
 type Currency struct {
+	Code string
+	Name string
+}
+
+type TimeZone struct {
 	Code string
 	Name string
 }
@@ -268,4 +275,21 @@ func GetCurrencies(cldr *CLDR, ldml *Ldml) map[string]Currency {
 	}
 
 	return currencies
+}
+
+func GetTimeZones(cldr *CLDR, ldml *Ldml) map[string]TimeZone {
+	var timezones map[string]TimeZone = make(map[string]TimeZone)
+
+	for _, t := range ldml.Dates.TimeZoneNames.Zone {
+		if t.Type == "Etc/Unknown" || t.Type == "Etc/UTC" {
+			continue
+		}
+
+		timezones[t.Type] = TimeZone{
+			Code: t.Type,
+			Name: t.ExemplarCity,
+		}
+	}
+
+	return timezones
 }

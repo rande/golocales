@@ -22,6 +22,12 @@ func Locale() *golocales.Locale {
                     "{{.Code}}": "{{.Name}}",
                 {{- end -}}
             },
+            TimeZones: map[string]golocales.TimeZone{
+                {{- range .TimeZones -}}
+                    "{{.Code}}": "{{.Name}}",
+                {{- end -}}
+            },
+
         }
     }
     
