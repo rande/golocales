@@ -10,6 +10,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func GetCLDR() *CLDR {
+
+	cldr := &CLDR{
+		Validities: []*Validity{
+			&Validity{"region", []string{"AC", "AD", "CD", "CF", "CG", "HK", "HM", "HN", "IO"}, "regular"},
+		},
+	}
+
+	return cldr
+}
+
 func Test_Load_Simple_Ldml(t *testing.T) {
 	ldml, err := LoadLdml("fixtures/ldml_inherited.xml")
 
@@ -29,9 +40,10 @@ func Test_Load_Full_Ldml(t *testing.T) {
 	// assert.Equal(t, "fr", ldml.Identity.Language.Type)
 	// assert.Equal(t, "YT", ldml.Identity.Territory.Type)
 	assert.NotNil(t, ldml.LocaleDisplayNames.Territories)
-	assert.Len(t, ldml.LocaleDisplayNames.Territories.Territory, 12)
+	assert.Len(t, ldml.LocaleDisplayNames.Territories.Territory, 14)
 
-	territories := GetTerritories(ldml)
+	territories := GetTerritories(GetCLDR(), ldml)
+
 	assert.Len(t, territories, 8)
 }
 
@@ -41,7 +53,7 @@ func Test_Write_Ldml(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	locale := BuildLocale(ldml)
+	locale := BuildLocale(GetCLDR(), ldml)
 
 	buffer := bytes.NewBuffer([]byte{})
 

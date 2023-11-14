@@ -73,9 +73,11 @@ Warnings: All cp values have U+FE0F characters removed. See /annotationsDerived/
 			<territory type="CD" alt="variant">Congo (RDC)</territory>
 			<territory type="CF">République centrafricaine</territory>
 			<territory type="CG">Congo-Brazzaville</territory>
+			<territory type="HK">Hong Kong</territory>
 			<territory type="HK" alt="short">Hong Kong</territory>
 			<territory type="HM">Îles Heard-et-MacDonald</territory>
 			<territory type="HN">Honduras</territory>
+			<territory type="IO">Archipel des Chagos</territory>
 			<territory type="IO" alt="chagos">Archipel des Chagos</territory>
 			<territory type="ZZ">région indéterminée</territory>
 		</territories>

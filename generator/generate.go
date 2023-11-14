@@ -33,20 +33,36 @@ func main() {
 		return
 	}
 
-	err := filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
+	cldr := &CLDR{}
+
+	err := filepath.Walk(CldrPath+"/validity", func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
 			return nil
 		}
-		ldml, err := LoadLdml(path)
 
-		if err != nil {
+		fmt.Printf("Load supplemental file %s\n", info.Name())
+
+		supplemental := &SupplementalData{}
+		if err := LoadXml(path, supplemental); err != nil {
 			log.Panic(err.Error())
 		}
 
-		locale := BuildLocale(ldml)
+		AttachValidity(cldr, supplemental)
+
+		return nil
+	})
+
+	err = filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return nil
+		}
+
+		ldml := &Ldml{}
+		if err := LoadXml(path, ldml); err != nil {
+			log.Panic(err.Error())
+		}
+
+		locale := BuildLocale(cldr, ldml)
 
 		if locale.IsTerritory() {
 			//fmt.Printf("Skipping territory %s\n", locale.Code)

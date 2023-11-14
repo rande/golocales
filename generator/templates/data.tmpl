@@ -17,6 +17,11 @@ func Locale() *golocales.Locale {
                     "{{.Code}}": "{{.Name}}",
                 {{- end -}}
             },
+            Currencies: map[string]golocales.Currency{
+                {{- range .Currencies -}}
+                    "{{.Code}}": "{{.Name}}",
+                {{- end -}}
+            },
         }
     }
     

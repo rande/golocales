@@ -16,6 +16,8 @@ export PATH=$PATH:`go env GOPATH`/bin
 export CLDR_DIR=`pwd`/data/common
 export LOCALE_DIR=`pwd`/locales
 
+rm -rf locales/*
+
 (cd generator && go run .)
 
 du -sh locales
