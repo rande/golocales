@@ -363,28 +363,33 @@ type Ldml struct {
 		Symbols []struct {
 			Text         string `xml:",chardata"`
 			NumberSystem string `xml:"numberSystem,attr"`
-			PercentSign  struct {
-				Text  string `xml:",chardata"`
-				Draft string `xml:"draft,attr"`
-			} `xml:"percentSign"`
-			PlusSign struct {
-				Text  string `xml:",chardata"`
-				Draft string `xml:"draft,attr"`
-			} `xml:"plusSign"`
-			MinusSign struct {
-				Text  string `xml:",chardata"`
-				Draft string `xml:"draft,attr"`
-			} `xml:"minusSign"`
-			ApproximatelySign struct {
-				Text  string `xml:",chardata"`
-				Draft string `xml:"draft,attr"`
-			} `xml:"approximatelySign"`
-			Decimal string `xml:"decimal"`
-			Group   string `xml:"group"`
+			Alias        struct {
+				Text   string `xml:",chardata"`
+				Source string `xml:"source,attr"`
+				Path   string `xml:"path,attr"`
+			} `xml:"alias"`
+			Decimal                string `xml:"decimal"`
+			Group                  string `xml:"group"`
+			List                   string `xml:"list"`
+			PercentSign            string `xml:"percentSign"`
+			PlusSign               string `xml:"plusSign"`
+			MinusSign              string `xml:"minusSign"`
+			ApproximatelySign      string `xml:"approximatelySign"`
+			Exponential            string `xml:"exponential"`
+			SuperscriptingExponent string `xml:"superscriptingExponent"`
+			PerMille               string `xml:"perMille"`
+			Infinity               string `xml:"infinity"`
+			Nan                    string `xml:"nan"`
+			TimeSeparator          string `xml:"timeSeparator"`
 		} `xml:"symbols"`
-		DecimalFormats struct {
-			Text                string `xml:",chardata"`
-			NumberSystem        string `xml:"numberSystem,attr"`
+		DecimalFormats []struct {
+			Text         string `xml:",chardata"`
+			NumberSystem string `xml:"numberSystem,attr"`
+			Alias        struct {
+				Text   string `xml:",chardata"`
+				Source string `xml:"source,attr"`
+				Path   string `xml:"path,attr"`
+			} `xml:"alias"`
 			DecimalFormatLength []struct {
 				Text          string `xml:",chardata"`
 				Type          string `xml:"type,attr"`
@@ -396,6 +401,11 @@ type Ldml struct {
 						Count string `xml:"count,attr"`
 					} `xml:"pattern"`
 				} `xml:"decimalFormat"`
+				Alias struct {
+					Text   string `xml:",chardata"`
+					Source string `xml:"source,attr"`
+					Path   string `xml:"path,attr"`
+				} `xml:"alias"`
 			} `xml:"decimalFormatLength"`
 		} `xml:"decimalFormats"`
 		PercentFormats struct {

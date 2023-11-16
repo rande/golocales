@@ -20,4 +20,6 @@ rm -rf locales/*
 
 (cd generator && go run .)
 
+# cat locales/fr/fr.go
+
 du -sh locales

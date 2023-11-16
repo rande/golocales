@@ -1,38 +1,65 @@
 package main
 
 import (
-	"strings"
+	"encoding/xml"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
-func ParseValidityValues(message string) []string {
-	partials := []string{}
-
-	message = strings.ReplaceAll(message, "\n\t", " ")
-
-	for _, word := range strings.Split(message, " ") {
-		word = strings.TrimSpace(word)
-		if word == "" || word == "\n" || word == "\t" {
-			continue
-		}
-
-		if !strings.Contains(word, "~") {
-			partials = append(partials, word)
-			continue
-		}
-
-		parts := strings.Split(word, "~")
-		from := parts[0]
-		to := byte(parts[1][0])
-
-		partials = append(partials, from)
-
-		letter := byte(from[1])
-
-		for letter <= to-1 {
-			letter++
-			partials = append(partials, string([]byte{from[1], letter}))
-		}
+func ifEmptyString(s string, def string) string {
+	if s == "" {
+		return def
 	}
 
-	return partials
+	return s
+}
+
+func LoadXml(filename string, strct interface{}) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	if err = xml.Unmarshal(data, strct); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func LoadLdml(filename string) (*Ldml, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var ldml Ldml
+	err = xml.Unmarshal(data, &ldml)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ldml, nil
+}
+
+func LoadLocaleFromFile(path string, cldr *CLDR) *Locale {
+	ldml := &Ldml{}
+	if err := LoadXml(path, ldml); err != nil {
+		log.Panic(err.Error())
+	}
+
+	return LoadLocale(cldr, ldml)
 }
