@@ -364,9 +364,10 @@ type Ldml struct {
 		} `xml:"timeZoneNames"`
 	} `xml:"dates"`
 	Numbers struct {
-		Text                  string `xml:",chardata"`
-		MinimumGroupingDigits string `xml:"minimumGroupingDigits"`
-		Symbols               []struct {
+		Text                   string `xml:",chardata"`
+		MinimumGroupingDigits  string `xml:"minimumGroupingDigits"`
+		DefaultNumberingSystem string `xml:"defaultNumberingSystem"`
+		Symbols                []struct {
 			Text         string `xml:",chardata"`
 			NumberSystem string `xml:"numberSystem,attr"`
 			Alias        struct {

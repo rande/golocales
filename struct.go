@@ -10,16 +10,18 @@ type Currency string
 type TimeZone string
 type NumberSystem string
 type Locale struct {
-	Name        string
-	Territories map[string]Territory
-	Currencies  map[string]Currency
-	TimeZones   map[string]TimeZone
-	Numbers     map[NumberSystem]*Number
-	Decimal     map[NumberSystem]FormatGroup
-	Parent      *Locale
+	Name                  string
+	Territories           map[string]Territory
+	Currencies            map[string]Currency
+	TimeZones             map[string]TimeZone
+	Symbols               map[NumberSystem]*Symbol
+	Decimal               map[NumberSystem]FormatGroup
+	Parent                *Locale
+	MinimumGroupingDigits int
+	DefaultNumberSystem   string
 }
 
-type Number struct {
+type Symbol struct {
 	System                 string
 	MinusSign              string
 	PlusSign               string
@@ -31,6 +33,7 @@ type Number struct {
 	ApproximatelySign      string
 	Infinity               string
 	TimeSeparator          string
+	PerMilleSign           string
 }
 
 type FormatGroup struct {
@@ -40,7 +43,10 @@ type FormatGroup struct {
 }
 
 type NumberFormat struct {
-	Type    string
-	Count   string
-	Pattern string
+	Type                  string
+	Count                 string
+	Pattern               string
+	PrimaryGroupingSize   int
+	SecondaryGroupingSize int
+	StandardPattern       string
 }

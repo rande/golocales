@@ -6,19 +6,20 @@
 package main
 
 type Locale struct {
-	IsRoot              bool
-	IsBase              bool
-	Parent              *Locale
-	Code                string
-	Name                string
-	Territory           string
-	Territories         map[string]Territory
-	Currencies          map[string]Currency
-	TimeZones           map[string]TimeZone
-	Parents             []*Locale
-	DefaultNumberSystem string
-	Numbers             map[string]*Number
-	Decimals            map[string]*FormatGroup
+	IsRoot                bool
+	IsBase                bool
+	Parent                *Locale
+	Code                  string
+	Name                  string
+	Territory             string
+	Territories           map[string]Territory
+	Currencies            map[string]Currency
+	TimeZones             map[string]TimeZone
+	Parents               []*Locale
+	Symbols               map[string]*Symbol
+	Decimals              map[string]*FormatGroup
+	DefaultNumberSystem   string
+	MinimumGroupingDigits int
 }
 
 func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
@@ -29,7 +30,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		Territory: ldml.Identity.Territory.Type,
 		Parents:   []*Locale{},
 		Parent:    nil,
-		Numbers:   map[string]*Number{},
+		Symbols:   map[string]*Symbol{},
 		Decimals:  map[string]*FormatGroup{},
 	}
 
@@ -50,8 +51,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 	AttachCurrencies(locale, cldr, ldml)
 	AttachTerritories(locale, cldr, ldml)
 	AttachTimeZones(locale, cldr, ldml)
-	AttachNumberSymbols(locale, cldr, ldml)
-	AttachNumberDecimals(locale, cldr, ldml)
+	AttachNumber(locale, cldr, ldml)
 
 	return locale
 }

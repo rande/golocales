@@ -7,7 +7,7 @@ package main
 
 import "fmt"
 
-type Number struct {
+type Symbol struct {
 	MinimumGroupingDigits  int
 	System                 string
 	MinusSign              string
@@ -24,15 +24,13 @@ type Number struct {
 }
 
 func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
-	var defaultNumber *Number
-	var defaultSystem = "latn"
+	var defaultNumber *Symbol
 
 	// 1 - we need to find the default number system: latn is the default number system
 	if locale.IsRoot { // nothing is yet loaded correctly, so we need to find the default values
 		for _, t := range ldml.Numbers.Symbols {
-			if t.NumberSystem == defaultSystem {
-				defaultNumber = &Number{
-					MinimumGroupingDigits:  ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1"),
+			if t.NumberSystem == locale.DefaultNumberSystem {
+				defaultNumber = &Symbol{
 					System:                 t.NumberSystem,           // latn
 					MinusSign:              t.MinusSign,              // -
 					PlusSign:               t.PlusSign,               // +
@@ -46,12 +44,14 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 					TimeSeparator:          t.TimeSeparator,          // :
 					PerMilleSign:           t.PerMille,               // ‰
 				}
+
+				locale.Symbols[t.NumberSystem] = defaultNumber
 			}
 		}
 
-	} else if locale.Parent != nil && locale.Parent.Numbers[defaultSystem] != nil {
+	} else if locale.Parent != nil && locale.Parent.Symbols[locale.DefaultNumberSystem] != nil {
 		// in a non root locale, we attach the default values from the parent
-		defaultNumber = locale.Parent.Numbers[defaultSystem]
+		defaultNumber = locale.Parent.Symbols[locale.DefaultNumberSystem]
 	} else {
 		fmt.Printf("No default number system found for %s\n", locale.Code)
 		return
@@ -63,9 +63,12 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		if t.NumberSystem == "" {
 			continue
 		}
+		// the parent has the same default system, do we can skip the configuration
+		if locale.Parent != nil && locale.Parent.DefaultNumberSystem == t.NumberSystem {
+			continue
+		}
 
-		locale.Numbers[t.NumberSystem] = &Number{
-			MinimumGroupingDigits:  ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1"),
+		number := &Symbol{
 			System:                 ifEmptyString(t.NumberSystem, defaultNumber.System),
 			MinusSign:              ifEmptyString(t.MinusSign, defaultNumber.MinusSign),
 			PlusSign:               ifEmptyString(t.PlusSign, defaultNumber.PlusSign),
@@ -79,5 +82,24 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			TimeSeparator:          ifEmptyString(t.TimeSeparator, defaultNumber.TimeSeparator),
 			PerMilleSign:           ifEmptyString(t.PerMille, defaultNumber.PerMilleSign),
 		}
+
+		// don't store if the same as the parent,
+		// we need to check the hierarchie too
+		// @TODO: implements inheritance checks
+		if number.MinusSign == defaultNumber.MinusSign &&
+			number.PlusSign == defaultNumber.PlusSign &&
+			number.Exponential == defaultNumber.Exponential &&
+			number.SuperscriptingExponent == defaultNumber.SuperscriptingExponent &&
+			number.Decimal == defaultNumber.Decimal &&
+			number.Group == defaultNumber.Group &&
+			number.PercentSign == defaultNumber.PercentSign &&
+			number.ApproximatelySign == defaultNumber.ApproximatelySign &&
+			number.Infinity == defaultNumber.Infinity &&
+			number.TimeSeparator == defaultNumber.TimeSeparator &&
+			number.PerMilleSign == defaultNumber.PerMilleSign {
+			continue
+		}
+
+		locale.Symbols[t.NumberSystem] = number
 	}
 }
