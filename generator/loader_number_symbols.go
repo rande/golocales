@@ -20,6 +20,7 @@ type Number struct {
 	ApproximatelySign      string
 	Infinity               string
 	TimeSeparator          string
+	PerMilleSign           string
 }
 
 func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
@@ -31,17 +32,19 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		for _, t := range ldml.Numbers.Symbols {
 			if t.NumberSystem == defaultSystem {
 				defaultNumber = &Number{
-					System:                 t.NumberSystem,
-					MinusSign:              t.MinusSign,
-					PlusSign:               t.PlusSign,
-					Exponential:            t.Exponential,
-					SuperscriptingExponent: t.SuperscriptingExponent,
-					Decimal:                t.Decimal,
-					Group:                  t.Group,
-					PercentSign:            t.PercentSign,
-					ApproximatelySign:      t.ApproximatelySign,
-					Infinity:               t.Infinity,
-					TimeSeparator:          t.TimeSeparator,
+					MinimumGroupingDigits:  ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1"),
+					System:                 t.NumberSystem,           // latn
+					MinusSign:              t.MinusSign,              // -
+					PlusSign:               t.PlusSign,               // +
+					Exponential:            t.Exponential,            // E
+					SuperscriptingExponent: t.SuperscriptingExponent, // ×
+					Decimal:                t.Decimal,                // ,
+					Group:                  t.Group,                  // ,
+					PercentSign:            t.PercentSign,            // %
+					ApproximatelySign:      t.ApproximatelySign,      // ~
+					Infinity:               t.Infinity,               // ∞
+					TimeSeparator:          t.TimeSeparator,          // :
+					PerMilleSign:           t.PerMille,               // ‰
 				}
 			}
 		}
@@ -62,6 +65,7 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		}
 
 		locale.Numbers[t.NumberSystem] = &Number{
+			MinimumGroupingDigits:  ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1"),
 			System:                 ifEmptyString(t.NumberSystem, defaultNumber.System),
 			MinusSign:              ifEmptyString(t.MinusSign, defaultNumber.MinusSign),
 			PlusSign:               ifEmptyString(t.PlusSign, defaultNumber.PlusSign),
@@ -73,6 +77,7 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			ApproximatelySign:      ifEmptyString(t.ApproximatelySign, defaultNumber.ApproximatelySign),
 			Infinity:               ifEmptyString(t.Infinity, defaultNumber.Infinity),
 			TimeSeparator:          ifEmptyString(t.TimeSeparator, defaultNumber.TimeSeparator),
+			PerMilleSign:           ifEmptyString(t.PerMille, defaultNumber.PerMilleSign),
 		}
 	}
 }

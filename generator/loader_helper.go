@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 )
 
 func ifEmptyString(s string, def string) string {
@@ -18,6 +19,18 @@ func ifEmptyString(s string, def string) string {
 	}
 
 	return s
+}
+
+func ifEmptyInt(s string, def string) int {
+	if s == "" {
+		s = def
+	}
+
+	if n, err := strconv.Atoi(s); err != nil {
+		panic(err)
+	} else {
+		return n
+	}
 }
 
 func LoadXml(filename string, strct interface{}) error {
