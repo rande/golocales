@@ -1,18 +1,24 @@
+// Copyright © 2023 Thomas Rabaix <thomas.rabaix@gmail.com>.
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file.
+
 package main
 
 type Locale struct {
-	IsRoot      bool
-	IsBase      bool
-	Parent      *Locale
-	Code        string
-	Name        string
-	Territory   string
-	Territories map[string]Territory
-	Currencies  map[string]Currency
-	TimeZones   map[string]TimeZone
-	Parents     []*Locale
-	Numbers     map[string]*Number
-	Decimals    map[string]*FormatGroup
+	IsRoot              bool
+	IsBase              bool
+	Parent              *Locale
+	Code                string
+	Name                string
+	Territory           string
+	Territories         map[string]Territory
+	Currencies          map[string]Currency
+	TimeZones           map[string]TimeZone
+	Parents             []*Locale
+	DefaultNumberSystem string
+	Numbers             map[string]*Number
+	Decimals            map[string]*FormatGroup
 }
 
 func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
