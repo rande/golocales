@@ -12,6 +12,13 @@ import (
 
 const DefaultNumberSystem = "latn"
 
+type Number struct {
+	Symbols               map[string]*Symbol
+	Decimals              map[string]*FormatGroup
+	DefaultNumberSystem   string
+	MinimumGroupingDigits int
+}
+
 type NumberFormat struct {
 	Type                  string
 	Count                 string
@@ -32,12 +39,12 @@ func processPattern(pattern string) string {
 
 func AttachNumber(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
-	locale.MinimumGroupingDigits = ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1")
-	locale.DefaultNumberSystem = ldml.Numbers.DefaultNumberingSystem
+	locale.Number.MinimumGroupingDigits = ifEmptyInt(ldml.Numbers.MinimumGroupingDigits, "1")
+	locale.Number.DefaultNumberSystem = ldml.Numbers.DefaultNumberingSystem
 
 	// Parent must have a valid configuration
 	if locale.Parent != nil {
-		locale.DefaultNumberSystem = locale.Parent.DefaultNumberSystem
+		locale.Number.DefaultNumberSystem = locale.Parent.Number.DefaultNumberSystem
 	}
 
 	AttachNumberSymbols(locale, cldr, ldml)

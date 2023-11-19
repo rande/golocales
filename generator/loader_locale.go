@@ -18,23 +18,20 @@ type Annotation struct {
 }
 
 type Locale struct {
-	IsRoot                bool
-	IsBase                bool
-	Parent                *Locale
-	Code                  string
-	Name                  string
-	Territory             string
-	Territories           map[string]Territory
-	Currencies            map[string]Currency
-	CurrencySymbols       map[string]Symbol
-	TimeZones             map[string]TimeZone
-	Parents               []*Locale
-	Symbols               map[string]*Symbol
-	Decimals              map[string]*FormatGroup
-	DefaultNumberSystem   string
-	MinimumGroupingDigits int
-	Keys                  map[string]string
-	Annotations           []*Annotation
+	IsRoot          bool
+	IsBase          bool
+	Parent          *Locale
+	Code            string
+	Name            string
+	Territory       string
+	Territories     map[string]Territory
+	Currencies      map[string]Currency
+	CurrencySymbols map[string]Symbol
+	TimeZones       map[string]TimeZone
+	Parents         []*Locale
+	Number          *Number
+	Keys            map[string]string
+	Annotations     []*Annotation
 }
 
 func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
@@ -45,9 +42,11 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		Territory: ldml.Identity.Territory.Type,
 		Parents:   []*Locale{},
 		Parent:    nil,
-		Symbols:   map[string]*Symbol{},
-		Decimals:  map[string]*FormatGroup{},
-		Keys:      map[string]string{},
+		Number: &Number{
+			Symbols:  map[string]*Symbol{},
+			Decimals: map[string]*FormatGroup{},
+		},
+		Keys: map[string]string{},
 	}
 
 	if cldr.RootLocale != nil {

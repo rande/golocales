@@ -69,7 +69,7 @@ type Formatter struct {
 
 // NewFormatter creates a new formatter for the given locale.
 func NewFormatter(locale *dto.Locale) *Formatter {
-	formats := locale.GetDecimalFormats(locale.DefaultNumberSystem, "default")
+	formats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
 
 	if formats != nil && len(formats) == 0 {
 		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
@@ -77,7 +77,7 @@ func NewFormatter(locale *dto.Locale) *Formatter {
 
 	f := &Formatter{
 		locale:          locale,
-		symbol:          locale.GetSymbol(locale.DefaultNumberSystem),
+		symbol:          locale.GetSymbol(locale.Number.DefaultNumberSystem),
 		format:          formats[0],
 		minDigits:       DefaultDigits,
 		maxDigits:       6,
@@ -259,7 +259,7 @@ func (f *Formatter) groupMajorDigits(majorDigits string) string {
 		return majorDigits
 	}
 	numDigits := len(majorDigits)
-	minDigits := int(f.locale.MinimumGroupingDigits)
+	minDigits := int(f.locale.Number.MinimumGroupingDigits)
 	primarySize := int(f.format.PrimaryGroupingSize)
 	secondarySize := int(f.format.SecondaryGroupingSize)
 	if numDigits < (minDigits + primarySize) {
@@ -288,10 +288,10 @@ func (f *Formatter) groupMajorDigits(majorDigits string) string {
 
 // localizeDigits replaces digits with their localized equivalents.
 func (f *Formatter) localizeDigits(number string) string {
-	if f.locale.DefaultNumberSystem == "latn" {
+	if f.locale.Number.DefaultNumberSystem == "latn" {
 		return number
 	}
-	digits := localDigits[f.locale.DefaultNumberSystem]
+	digits := localDigits[f.locale.Number.DefaultNumberSystem]
 	replacements := make([]string, 0, 20)
 	for i, v := range strings.Split(digits, "") {
 		replacements = append(replacements, strconv.Itoa(i), v)

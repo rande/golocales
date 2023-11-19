@@ -29,7 +29,7 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	// 1 - we need to find the default number system: latn is the default number system
 	if locale.IsRoot { // nothing is yet loaded correctly, so we need to find the default values
 		for _, t := range ldml.Numbers.Symbols {
-			if t.NumberSystem == locale.DefaultNumberSystem {
+			if t.NumberSystem == locale.Number.DefaultNumberSystem {
 				defaultNumber = &Symbol{
 					System:                 t.NumberSystem,           // latn
 					MinusSign:              t.MinusSign,              // -
@@ -45,13 +45,13 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 					PerMilleSign:           t.PerMille,               // ‰
 				}
 
-				locale.Symbols[t.NumberSystem] = defaultNumber
+				locale.Number.Symbols[t.NumberSystem] = defaultNumber
 			}
 		}
 
-	} else if locale.Parent != nil && locale.Parent.Symbols[locale.DefaultNumberSystem] != nil {
+	} else if locale.Parent != nil && locale.Parent.Number.Symbols[locale.Number.DefaultNumberSystem] != nil {
 		// in a non root locale, we attach the default values from the parent
-		defaultNumber = locale.Parent.Symbols[locale.DefaultNumberSystem]
+		defaultNumber = locale.Parent.Number.Symbols[locale.Number.DefaultNumberSystem]
 	} else {
 		fmt.Printf("No default number system found for %s\n", locale.Code)
 		return
@@ -64,7 +64,7 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			continue
 		}
 		// the parent has the same default system, do we can skip the configuration
-		if locale.Parent != nil && locale.Parent.DefaultNumberSystem == t.NumberSystem {
+		if locale.Parent != nil && locale.Parent.Number.DefaultNumberSystem == t.NumberSystem {
 			continue
 		}
 
@@ -100,6 +100,6 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			continue
 		}
 
-		locale.Symbols[t.NumberSystem] = number
+		locale.Number.Symbols[t.NumberSystem] = number
 	}
 }

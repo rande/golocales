@@ -49,7 +49,6 @@ func WriteGo(locale *Locale, w io.Writer) error {
 		"Territories": locale.Territories,
 		"Currencies":  locale.Currencies,
 		"TimeZones":   locale.TimeZones,
-		"Symbols":     locale.Symbols,
 	}
 
 	return tpl.Execute(w, ctx)

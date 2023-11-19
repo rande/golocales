@@ -29,8 +29,8 @@ func AttachNumberDecimals(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			}
 
 			// a code is defined in the locale, so we need to override the default values
-			if locale.Decimals[t.NumberSystem] == nil {
-				locale.Decimals[t.NumberSystem] = &FormatGroup{
+			if locale.Number.Decimals[t.NumberSystem] == nil {
+				locale.Number.Decimals[t.NumberSystem] = &FormatGroup{
 					Long:    []*NumberFormat{},
 					Short:   []*NumberFormat{},
 					Default: []*NumberFormat{},
@@ -49,11 +49,11 @@ func AttachNumberDecimals(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 				switch code {
 				case "long":
-					locale.Decimals[t.NumberSystem].Long = append(locale.Decimals[t.NumberSystem].Long, format)
+					locale.Number.Decimals[t.NumberSystem].Long = append(locale.Number.Decimals[t.NumberSystem].Long, format)
 				case "short":
-					locale.Decimals[t.NumberSystem].Short = append(locale.Decimals[t.NumberSystem].Short, format)
+					locale.Number.Decimals[t.NumberSystem].Short = append(locale.Number.Decimals[t.NumberSystem].Short, format)
 				case "default":
-					locale.Decimals[t.NumberSystem].Default = append(locale.Decimals[t.NumberSystem].Default, format)
+					locale.Number.Decimals[t.NumberSystem].Default = append(locale.Number.Decimals[t.NumberSystem].Default, format)
 				}
 			}
 		}
