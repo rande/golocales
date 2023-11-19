@@ -6,6 +6,7 @@
 package main
 
 type CLDR struct {
+	Path       string
 	Validities []*Validity
 	RootLocale *Locale
 }

@@ -9,33 +9,33 @@
 package {{.Code}}
 
 import (
-    "github.com/rande/golocales"
+    "github.com/rande/golocales/dto"
     {{ if .Locale.Parent -}}
         "github.com/rande/golocales/locales/{{ .Locale.Parent.Code }}"
     {{- end -}}
 )
 
-var locale = &golocales.Locale{
+var locale = &dto.Locale{
     Name: "{{.Code}}",
     {{- if .Locale.Parent }}
     Parent: {{ .Locale.Parent.Code }}.Locale(),
     {{- end }}
-    Territories: map[string]golocales.Territory{
+    Territories: map[string]dto.Territory{
         {{- range .Territories -}}
             "{{.Code}}": "{{.Name}}",
         {{- end -}}
     },
-    Currencies: map[string]golocales.Currency{
-        {{- range .Currencies -}}
-            "{{.Code}}": "{{.Name}}",
-        {{- end -}}
+    Currencies: map[string]*dto.Currency{
+        {{- range .Currencies }}
+            "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
+        {{ end -}}
     },
-    TimeZones: map[string]golocales.TimeZone{
+    TimeZones: map[string]dto.TimeZone{
         {{- range .TimeZones -}}
             "{{.Code}}": "{{.Name}}",
         {{- end -}}
     },
-    Symbols: map[golocales.NumberSystem]*golocales.Symbol{
+    Symbols: map[dto.NumberSystem]*dto.Symbol{
         {{ range .Symbols -}}
             "{{.System}}": {
                 System:"{{.System}}",
@@ -56,11 +56,11 @@ var locale = &golocales.Locale{
     MinimumGroupingDigits: {{ .Locale.MinimumGroupingDigits }},
 	DefaultNumberSystem: "{{ .Locale.DefaultNumberSystem }}",
 {{ if .Locale.Decimals }}
-    Decimal: map[golocales.NumberSystem]golocales.FormatGroup{
+    Decimal: map[dto.NumberSystem]*dto.FormatGroup{
         {{- range $key, $value := .Locale.Decimals }}
-            golocales.NumberSystem("{{$key}}"): golocales.FormatGroup{
+            dto.NumberSystem("{{$key}}"): &dto.FormatGroup{
                 {{ if .Long }}
-                Long: []*golocales.NumberFormat{
+                Long: []*dto.NumberFormat{
                     {{- range .Long -}}
                             {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                     {{ end -}}
@@ -69,7 +69,7 @@ var locale = &golocales.Locale{
                 // Long is empty
                 {{- end }}
                 {{ if .Short }}
-                Short: []*golocales.NumberFormat{
+                Short: []*dto.NumberFormat{
                     {{- range .Short -}}
                             {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                     {{ end -}}
@@ -78,7 +78,7 @@ var locale = &golocales.Locale{
                 // Short is empty
                 {{- end }}
                 {{ if .Default }}
-                Default: []*golocales.NumberFormat{
+                Default: []*dto.NumberFormat{
                     {{- range .Default -}}
                             {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                     {{ end -}}
@@ -94,6 +94,6 @@ var locale = &golocales.Locale{
 {{ end }}
 }
 
-func Locale() *golocales.Locale {
+func Locale() *dto.Locale {
     return locale
 }

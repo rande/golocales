@@ -5,6 +5,18 @@
 
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
+type Annotation struct {
+	Type  string
+	Label string
+	Cp    string
+	Key   string
+}
+
 type Locale struct {
 	IsRoot                bool
 	IsBase                bool
@@ -14,12 +26,15 @@ type Locale struct {
 	Territory             string
 	Territories           map[string]Territory
 	Currencies            map[string]Currency
+	CurrencySymbols       map[string]Symbol
 	TimeZones             map[string]TimeZone
 	Parents               []*Locale
 	Symbols               map[string]*Symbol
 	Decimals              map[string]*FormatGroup
 	DefaultNumberSystem   string
 	MinimumGroupingDigits int
+	Keys                  map[string]string
+	Annotations           []*Annotation
 }
 
 func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
@@ -32,6 +47,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		Parent:    nil,
 		Symbols:   map[string]*Symbol{},
 		Decimals:  map[string]*FormatGroup{},
+		Keys:      map[string]string{},
 	}
 
 	if cldr.RootLocale != nil {
@@ -48,10 +64,55 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		locale.IsBase = !locale.IsRoot
 	}
 
+	AttachKeys(locale, cldr, ldml)
+	AttachAnnotations(locale, cldr, ldml)
 	AttachCurrencies(locale, cldr, ldml)
 	AttachTerritories(locale, cldr, ldml)
 	AttachTimeZones(locale, cldr, ldml)
 	AttachNumber(locale, cldr, ldml)
 
 	return locale
+}
+
+// The keys are used to filter data in each annotation files
+// currency is device is french,
+//
+//	<annotation cp="€">devise | EUR | euro</annotation>
+func AttachKeys(locale *Locale, cldr *CLDR, ldml *Ldml) {
+	for _, key := range ldml.LocaleDisplayNames.Keys.Key {
+		locale.Keys[key.Type] = strings.ToLower(key.Text)
+	}
+}
+
+// For now, we only attach currency key, and draft must be empty
+func AttachAnnotations(locale *Locale, cldr *CLDR, ldml *Ldml) {
+	annotation := &XmlAnnotation{}
+
+	module := locale.Code
+	if locale.IsRoot {
+		module = "en"
+	}
+
+	// load the related annotation for the root file, however the
+	// file is empty, so we fallback to the en one.
+	err := LoadXml(cldr.Path+"/annotations/"+module+".xml", annotation)
+
+	if err != nil {
+		fmt.Printf("Unable to find the annotation: %s\n", module)
+		return
+	}
+
+	for _, a := range annotation.Annotations.Annotation {
+		if a.Draft != "" {
+			continue
+		}
+
+		annotation := &Annotation{
+			Type:  a.Type,
+			Cp:    a.Cp,
+			Label: a.Text,
+		}
+
+		locale.Annotations = append(locale.Annotations, annotation)
+	}
 }

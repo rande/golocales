@@ -24,6 +24,31 @@ type SupplementalData struct {
 	} `xml:"idValidity"`
 }
 
+type XmlAnnotation struct {
+	XMLName  xml.Name `xml:"ldml"`
+	Text     string   `xml:",chardata"`
+	Identity struct {
+		Text    string `xml:",chardata"`
+		Version struct {
+			Text   string `xml:",chardata"`
+			Number string `xml:"number,attr"`
+		} `xml:"version"`
+		Language struct {
+			Text string `xml:",chardata"`
+			Type string `xml:"type,attr"`
+		} `xml:"language"`
+	} `xml:"identity"`
+	Annotations struct {
+		Text       string `xml:",chardata"`
+		Annotation []struct {
+			Text  string `xml:",chardata"`
+			Cp    string `xml:"cp,attr"`
+			Type  string `xml:"type,attr"`
+			Draft string `xml:"draft,attr"`
+		} `xml:"annotation"`
+	} `xml:"annotations"`
+}
+
 type Ldml struct {
 	XMLName  xml.Name `xml:"ldml"`
 	Text     string   `xml:",chardata"`
@@ -70,6 +95,13 @@ type Ldml struct {
 				Alt  string `xml:"alt,attr"`
 			} `xml:"territory"`
 		} `xml:"territories"`
+		Keys struct {
+			Text string `xml:",chardata"`
+			Key  []struct {
+				Text string `xml:",chardata"`
+				Type string `xml:"type,attr"`
+			} `xml:"key"`
+		} `xml:"keys"`
 		Subdivisions struct {
 			Text        string `xml:",chardata"`
 			Subdivision []struct {

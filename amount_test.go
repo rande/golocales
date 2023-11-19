@@ -6,7 +6,7 @@
 // This file is an adaptation of https://github.com/bojanz/currency
 // all credits goes to Bojan Zivanovic and contributors
 
-package golocales
+package golocales_test
 
 import (
 	"encoding/json"
@@ -14,11 +14,13 @@ import (
 	"math/big"
 	"sync"
 	"testing"
+
+	"github.com/rande/golocales"
 )
 
 func TestNewCurrency(t *testing.T) {
-	_, err := NewCurrency("INVALID", "USD")
-	if e, ok := err.(InvalidNumberError); ok {
+	_, err := golocales.NewCurrency("INVALID", "USD")
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "INVALID" {
 			t.Errorf("got %v, want INVALID", e.Number)
 		}
@@ -30,8 +32,8 @@ func TestNewCurrency(t *testing.T) {
 		t.Errorf("got %T, want InvalidNumberError", err)
 	}
 
-	_, err = NewCurrency("10.99", "usd")
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	_, err = golocales.NewCurrency("10.99", "usd")
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "usd" {
 			t.Errorf("got %v, want usd", e.CurrencyCode)
 		}
@@ -43,7 +45,7 @@ func TestNewCurrency(t *testing.T) {
 		t.Errorf("got %T, want InvalidCurrencyCodeError", err)
 	}
 
-	a, err := NewCurrency("10.99", "USD")
+	a, err := golocales.NewCurrency("10.99", "USD")
 	if err != nil {
 		t.Errorf("unexpected error %v", err)
 	}
@@ -59,8 +61,8 @@ func TestNewCurrency(t *testing.T) {
 }
 
 func TestNewCurrencyFromBigInt(t *testing.T) {
-	_, err := NewCurrencyFromBigInt(nil, "USD")
-	if e, ok := err.(InvalidNumberError); ok {
+	_, err := golocales.NewCurrencyFromBigInt(nil, "USD")
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "nil" {
 			t.Errorf("got %v, want nil", e.Number)
 		}
@@ -72,8 +74,8 @@ func TestNewCurrencyFromBigInt(t *testing.T) {
 		t.Errorf("got %T, want InvalidNumberError", err)
 	}
 
-	_, err = NewCurrencyFromBigInt(big.NewInt(1099), "usd")
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	_, err = golocales.NewCurrencyFromBigInt(big.NewInt(1099), "usd")
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "usd" {
 			t.Errorf("got %v, want usd", e.CurrencyCode)
 		}
@@ -100,7 +102,7 @@ func TestNewCurrencyFromBigInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, err := NewCurrencyFromBigInt(tt.n, tt.currencyCode)
+			a, err := golocales.NewCurrencyFromBigInt(tt.n, tt.currencyCode)
 			if err != nil {
 				t.Errorf("unexpected error %v", err)
 			}
@@ -115,8 +117,8 @@ func TestNewCurrencyFromBigInt(t *testing.T) {
 }
 
 func TestNewCurrencyFromInt64(t *testing.T) {
-	_, err := NewCurrencyFromInt64(1099, "usd")
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	_, err := golocales.NewCurrencyFromInt64(1099, "usd")
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "usd" {
 			t.Errorf("got %v, want usd", e.CurrencyCode)
 		}
@@ -140,7 +142,7 @@ func TestNewCurrencyFromInt64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, err := NewCurrencyFromInt64(tt.n, tt.currencyCode)
+			a, err := golocales.NewCurrencyFromInt64(tt.n, tt.currencyCode)
 			if err != nil {
 				t.Errorf("unexpected error %v", err)
 			}
@@ -170,7 +172,7 @@ func TestAmount_BigInt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.number, tt.currencyCode)
+			a, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
 			got := a.BigInt()
 			if got.Cmp(tt.want) != 0 {
 				t.Errorf("got %v, want %v", got, tt.want)
@@ -185,7 +187,7 @@ func TestAmount_BigInt(t *testing.T) {
 
 func TestAmount_Int64(t *testing.T) {
 	// Number that can't be represented as an int64.
-	a, _ := NewCurrency("922337203685477598799", "USD")
+	a, _ := golocales.NewCurrency("922337203685477598799", "USD")
 	n, err := a.Int64()
 	if n != 0 {
 		t.Error("expected a.Int64() to be 0")
@@ -209,7 +211,7 @@ func TestAmount_Int64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.number, tt.currencyCode)
+			a, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
 			got, _ := a.Int64()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
@@ -275,13 +277,13 @@ func TestAmount_Int64(t *testing.T) {
 // }
 
 func TestAmount_Add(t *testing.T) {
-	a, _ := NewCurrency("20.99", "USD")
-	b, _ := NewCurrency("3.50", "USD")
-	x, _ := NewCurrency("99.99", "EUR")
-	var z Amount
+	a, _ := golocales.NewCurrency("20.99", "USD")
+	b, _ := golocales.NewCurrency("3.50", "USD")
+	x, _ := golocales.NewCurrency("99.99", "EUR")
+	var z golocales.Amount
 
 	_, err := a.Add(x)
-	if e, ok := err.(MismatchError); ok {
+	if e, ok := err.(golocales.MismatchError); ok {
 		if e.A != a {
 			t.Errorf("got %v, want %v", e.A, a)
 		}
@@ -312,7 +314,7 @@ func TestAmount_Add(t *testing.T) {
 	}
 
 	// An amount equal to math.MaxInt64.
-	d, _ := NewCurrency("9223372036854775807", "USD")
+	d, _ := golocales.NewCurrency("9223372036854775807", "USD")
 	e, err := d.Add(a)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -340,13 +342,13 @@ func TestAmount_Add(t *testing.T) {
 }
 
 func TestAmount_Sub(t *testing.T) {
-	a, _ := NewCurrency("20.99", "USD")
-	b, _ := NewCurrency("3.50", "USD")
-	x, _ := NewCurrency("99.99", "EUR")
-	var z Amount
+	a, _ := golocales.NewCurrency("20.99", "USD")
+	b, _ := golocales.NewCurrency("3.50", "USD")
+	x, _ := golocales.NewCurrency("99.99", "EUR")
+	var z golocales.Amount
 
 	_, err := a.Sub(x)
-	if e, ok := err.(MismatchError); ok {
+	if e, ok := err.(golocales.MismatchError); ok {
 		if e.A != a {
 			t.Errorf("got %v, want %v", e.A, a)
 		}
@@ -377,7 +379,7 @@ func TestAmount_Sub(t *testing.T) {
 	}
 
 	// An amount larger than math.MaxInt64.
-	d, _ := NewCurrency("922337203685477598799", "USD")
+	d, _ := golocales.NewCurrency("922337203685477598799", "USD")
 	e, err := d.Sub(a)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -409,10 +411,10 @@ func TestAmount_Sub(t *testing.T) {
 }
 
 func TestAmount_Mul(t *testing.T) {
-	a, _ := NewCurrency("20.99", "USD")
+	a, _ := golocales.NewCurrency("20.99", "USD")
 
 	_, err := a.Mul("INVALID")
-	if e, ok := err.(InvalidNumberError); ok {
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "INVALID" {
 			t.Errorf("got %v, want INVALID", e.Number)
 		}
@@ -437,7 +439,7 @@ func TestAmount_Mul(t *testing.T) {
 	}
 
 	// An amount equal to math.MaxInt64.
-	d, _ := NewCurrency("9223372036854775807", "USD")
+	d, _ := golocales.NewCurrency("9223372036854775807", "USD")
 	e, err := d.Mul("10")
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -448,11 +450,11 @@ func TestAmount_Mul(t *testing.T) {
 }
 
 func TestAmount_Div(t *testing.T) {
-	a, _ := NewCurrency("99.99", "USD")
+	a, _ := golocales.NewCurrency("99.99", "USD")
 
 	for _, n := range []string{"INVALID", "0"} {
 		_, err := a.Div(n)
-		if e, ok := err.(InvalidNumberError); ok {
+		if e, ok := err.(golocales.InvalidNumberError); ok {
 			if e.Number != n {
 				t.Errorf("got %v, want %v", e.Number, n)
 			}
@@ -474,7 +476,7 @@ func TestAmount_Div(t *testing.T) {
 	}
 
 	// An amount equal to math.MaxInt64.
-	d, _ := NewCurrency("9223372036854775807", "USD")
+	d, _ := golocales.NewCurrency("9223372036854775807", "USD")
 	e, err := d.Div("0.5")
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -496,7 +498,7 @@ func TestAmount_Round(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.number, tt.currencyCode)
+			a, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
 			b := a.Round()
 			if b.Number() != tt.want {
 				t.Errorf("got %v, want %v", b.Number(), tt.want)
@@ -513,67 +515,67 @@ func TestAmount_RoundTo(t *testing.T) {
 	tests := []struct {
 		number string
 		digits uint8
-		mode   RoundingMode
+		mode   golocales.RoundingMode
 		want   string
 	}{
-		{"12.343", 2, RoundHalfUp, "12.34"},
-		{"12.345", 2, RoundHalfUp, "12.35"},
-		{"12.347", 2, RoundHalfUp, "12.35"},
+		{"12.343", 2, golocales.RoundHalfUp, "12.34"},
+		{"12.345", 2, golocales.RoundHalfUp, "12.35"},
+		{"12.347", 2, golocales.RoundHalfUp, "12.35"},
 
-		{"12.343", 2, RoundHalfDown, "12.34"},
-		{"12.345", 2, RoundHalfDown, "12.34"},
-		{"12.347", 2, RoundHalfDown, "12.35"},
+		{"12.343", 2, golocales.RoundHalfDown, "12.34"},
+		{"12.345", 2, golocales.RoundHalfDown, "12.34"},
+		{"12.347", 2, golocales.RoundHalfDown, "12.35"},
 
-		{"12.343", 2, RoundUp, "12.35"},
-		{"12.345", 2, RoundUp, "12.35"},
-		{"12.347", 2, RoundUp, "12.35"},
+		{"12.343", 2, golocales.RoundUp, "12.35"},
+		{"12.345", 2, golocales.RoundUp, "12.35"},
+		{"12.347", 2, golocales.RoundUp, "12.35"},
 
-		{"12.343", 2, RoundDown, "12.34"},
-		{"12.345", 2, RoundDown, "12.34"},
-		{"12.347", 2, RoundDown, "12.34"},
+		{"12.343", 2, golocales.RoundDown, "12.34"},
+		{"12.345", 2, golocales.RoundDown, "12.34"},
+		{"12.347", 2, golocales.RoundDown, "12.34"},
 
-		{"12.344", 2, RoundHalfEven, "12.34"},
-		{"12.345", 2, RoundHalfEven, "12.34"},
-		{"12.346", 2, RoundHalfEven, "12.35"},
+		{"12.344", 2, golocales.RoundHalfEven, "12.34"},
+		{"12.345", 2, golocales.RoundHalfEven, "12.34"},
+		{"12.346", 2, golocales.RoundHalfEven, "12.35"},
 
-		{"12.334", 2, RoundHalfEven, "12.33"},
-		{"12.335", 2, RoundHalfEven, "12.34"},
-		{"12.336", 2, RoundHalfEven, "12.34"},
+		{"12.334", 2, golocales.RoundHalfEven, "12.33"},
+		{"12.335", 2, golocales.RoundHalfEven, "12.34"},
+		{"12.336", 2, golocales.RoundHalfEven, "12.34"},
 
 		// Negative amounts.
-		{"-12.345", 2, RoundHalfUp, "-12.35"},
-		{"-12.345", 2, RoundHalfDown, "-12.34"},
-		{"-12.345", 2, RoundUp, "-12.35"},
-		{"-12.345", 2, RoundDown, "-12.34"},
-		{"-12.345", 2, RoundHalfEven, "-12.34"},
-		{"-12.335", 2, RoundHalfEven, "-12.34"},
+		{"-12.345", 2, golocales.RoundHalfUp, "-12.35"},
+		{"-12.345", 2, golocales.RoundHalfDown, "-12.34"},
+		{"-12.345", 2, golocales.RoundUp, "-12.35"},
+		{"-12.345", 2, golocales.RoundDown, "-12.34"},
+		{"-12.345", 2, golocales.RoundHalfEven, "-12.34"},
+		{"-12.335", 2, golocales.RoundHalfEven, "-12.34"},
 
 		// More digits that the amount has.
-		{"12.345", 4, RoundHalfUp, "12.3450"},
-		{"12.345", 4, RoundHalfDown, "12.3450"},
+		{"12.345", 4, golocales.RoundHalfUp, "12.3450"},
+		{"12.345", 4, golocales.RoundHalfDown, "12.3450"},
 
 		// Same number of digits that the amount has.
-		{"12.345", 3, RoundHalfUp, "12.345"},
-		{"12.345", 3, RoundHalfDown, "12.345"},
-		{"12.345", 3, RoundUp, "12.345"},
-		{"12.345", 3, RoundDown, "12.345"},
+		{"12.345", 3, golocales.RoundHalfUp, "12.345"},
+		{"12.345", 3, golocales.RoundHalfDown, "12.345"},
+		{"12.345", 3, golocales.RoundUp, "12.345"},
+		{"12.345", 3, golocales.RoundDown, "12.345"},
 
 		// 0 digits.
-		{"12.345", 0, RoundHalfUp, "12"},
-		{"12.345", 0, RoundHalfDown, "12"},
-		{"12.345", 0, RoundUp, "13"},
-		{"12.345", 0, RoundDown, "12"},
+		{"12.345", 0, golocales.RoundHalfUp, "12"},
+		{"12.345", 0, golocales.RoundHalfDown, "12"},
+		{"12.345", 0, golocales.RoundUp, "13"},
+		{"12.345", 0, golocales.RoundDown, "12"},
 
 		// Amounts larger than math.MaxInt64.
-		{"12345678901234567890.0345", 3, RoundHalfUp, "12345678901234567890.035"},
-		{"12345678901234567890.0345", 3, RoundHalfDown, "12345678901234567890.034"},
-		{"12345678901234567890.0345", 3, RoundUp, "12345678901234567890.035"},
-		{"12345678901234567890.0345", 3, RoundDown, "12345678901234567890.034"},
+		{"12345678901234567890.0345", 3, golocales.RoundHalfUp, "12345678901234567890.035"},
+		{"12345678901234567890.0345", 3, golocales.RoundHalfDown, "12345678901234567890.034"},
+		{"12345678901234567890.0345", 3, golocales.RoundUp, "12345678901234567890.035"},
+		{"12345678901234567890.0345", 3, golocales.RoundDown, "12345678901234567890.034"},
 	}
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.number, "USD")
+			a, _ := golocales.NewCurrency(tt.number, "USD")
 			b := a.RoundTo(tt.digits, tt.mode)
 			if b.Number() != tt.want {
 				t.Errorf("got %v, want %v", b.Number(), tt.want)
@@ -588,11 +590,11 @@ func TestAmount_RoundTo(t *testing.T) {
 
 func TestAmount_RoundToWithConcurrency(t *testing.T) {
 	n := 2
-	roundingModes := []RoundingMode{
-		RoundHalfUp,
-		RoundHalfDown,
-		RoundUp,
-		RoundDown,
+	roundingModes := []golocales.RoundingMode{
+		golocales.RoundHalfUp,
+		golocales.RoundHalfDown,
+		golocales.RoundUp,
+		golocales.RoundDown,
 	}
 
 	for _, roundingMode := range roundingModes {
@@ -607,7 +609,7 @@ func TestAmount_RoundToWithConcurrency(t *testing.T) {
 			for i := 0; i < n; i++ {
 				go func() {
 					defer allDone.Done()
-					amount, _ := NewCurrency("10.99", "EUR")
+					amount, _ := golocales.NewCurrency("10.99", "EUR")
 					amount.RoundTo(1, roundingMode)
 				}()
 			}
@@ -618,10 +620,10 @@ func TestAmount_RoundToWithConcurrency(t *testing.T) {
 }
 
 func TestAmount_Cmp(t *testing.T) {
-	a, _ := NewCurrency("3.33", "USD")
-	b, _ := NewCurrency("3.33", "EUR")
+	a, _ := golocales.NewCurrency("3.33", "USD")
+	b, _ := golocales.NewCurrency("3.33", "EUR")
 	_, err := a.Cmp(b)
-	if e, ok := err.(MismatchError); ok {
+	if e, ok := err.(golocales.MismatchError); ok {
 		if e.A != a {
 			t.Errorf("got %v, want %v", e.A, a)
 		}
@@ -648,8 +650,8 @@ func TestAmount_Cmp(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.aNumber, "USD")
-			b, _ := NewCurrency(tt.bNumber, "USD")
+			a, _ := golocales.NewCurrency(tt.aNumber, "USD")
+			b, _ := golocales.NewCurrency(tt.bNumber, "USD")
 			got, err := a.Cmp(b)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
@@ -677,8 +679,8 @@ func TestAmount_Equal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.aNumber, tt.aCurrencyCode)
-			b, _ := NewCurrency(tt.bNumber, tt.bCurrencyCode)
+			a, _ := golocales.NewCurrency(tt.aNumber, tt.aCurrencyCode)
+			b, _ := golocales.NewCurrency(tt.bNumber, tt.bCurrencyCode)
 			got := a.Equal(b)
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
@@ -701,7 +703,7 @@ func TestAmount_Checks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			a, _ := NewCurrency(tt.number, "USD")
+			a, _ := golocales.NewCurrency(tt.number, "USD")
 			gotPositive := a.IsPositive()
 			gotNegative := a.IsNegative()
 			gotZero := a.IsZero()
@@ -719,7 +721,7 @@ func TestAmount_Checks(t *testing.T) {
 }
 
 func TestAmount_MarshalBinary(t *testing.T) {
-	a, _ := NewCurrency("3.45", "USD")
+	a, _ := golocales.NewCurrency("3.45", "USD")
 	d, err := a.MarshalBinary()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -733,9 +735,9 @@ func TestAmount_MarshalBinary(t *testing.T) {
 
 func TestAmount_UnmarshalBinary(t *testing.T) {
 	d := []byte("US")
-	a := &Amount{}
+	a := &golocales.Amount{}
 	err := a.UnmarshalBinary(d)
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "US" {
 			t.Errorf("got %v, want US", e.CurrencyCode)
 		}
@@ -749,7 +751,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 
 	d = []byte("USD3,60")
 	err = a.UnmarshalBinary(d)
-	if e, ok := err.(InvalidNumberError); ok {
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "3,60" {
 			t.Errorf("got %v, want 3,60", e.Number)
 		}
@@ -763,7 +765,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 
 	d = []byte("XXX2.60")
 	err = a.UnmarshalBinary(d)
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "XXX" {
 			t.Errorf("got %v, want XXX", e.CurrencyCode)
 		}
@@ -789,7 +791,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 }
 
 func TestAmount_MarshalJSON(t *testing.T) {
-	a, _ := NewCurrency("3.45", "USD")
+	a, _ := golocales.NewCurrency("3.45", "USD")
 	d, err := json.Marshal(a)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -803,9 +805,9 @@ func TestAmount_MarshalJSON(t *testing.T) {
 
 func TestAmount_UnmarshalJSON(t *testing.T) {
 	d := []byte(`{"unit":1,"number":"INVALID","code":"USD"}`)
-	unmarshalled := &Amount{}
+	unmarshalled := &golocales.Amount{}
 	err := json.Unmarshal(d, unmarshalled)
-	if e, ok := err.(InvalidNumberError); ok {
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "INVALID" {
 			t.Errorf("got %v, want INVALID", e.Number)
 		}
@@ -819,7 +821,7 @@ func TestAmount_UnmarshalJSON(t *testing.T) {
 
 	d = []byte(`{"unit":1,"number": {"key": "value"}, "code": "USD"}`)
 	err = json.Unmarshal(d, unmarshalled)
-	if e, ok := err.(InvalidNumberError); ok {
+	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != `{"key": "value"}` {
 			t.Errorf(`got %v, "want {"key": "value"}"`, e.Number)
 		}
@@ -845,7 +847,7 @@ func TestAmount_UnmarshalJSON(t *testing.T) {
 
 	d = []byte(`{"unit":1,"number":"3.45","code":"usd"}`)
 	err = json.Unmarshal(d, unmarshalled)
-	if e, ok := err.(InvalidCurrencyCodeError); ok {
+	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "usd" {
 			t.Errorf("got %v, want usd", e.CurrencyCode)
 		}
@@ -871,14 +873,14 @@ func TestAmount_UnmarshalJSON(t *testing.T) {
 }
 
 func TestAmount_Value(t *testing.T) {
-	a, _ := NewCurrency("3.45", "USD")
+	a, _ := golocales.NewCurrency("3.45", "USD")
 	got, _ := a.Value()
 	want := "(3.45,1,USD)"
 	if got != want {
 		t.Errorf("got %v, want %v", got, want)
 	}
 
-	var b Amount
+	var b golocales.Amount
 	got, _ = b.Value()
 	want = "(0,0,)"
 	if got != want {
@@ -903,7 +905,7 @@ func TestAmount_Scan(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			var a Amount
+			var a golocales.Amount
 			err := a.Scan(tt.src)
 			if a.Number() != tt.wantNumber {
 				t.Errorf("number: got %v, want %v", a.Number(), tt.wantNumber)

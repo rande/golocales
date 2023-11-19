@@ -9,9 +9,11 @@
 // Package currency handles currency amounts, provides currency information and formatting.
 package golocales
 
-import "sort"
+import (
+	"sort"
 
-// import "sort"
+	"github.com/rande/golocales/dto"
+)
 
 // DefaultDigits is a placeholder for each currency's number of fraction digits.
 const DefaultDigits uint8 = 255
@@ -56,41 +58,37 @@ func GetCurrencyDigits(currencyCode string) (digits uint8, ok bool) {
 	return currencies[currencyCode].digits, true
 }
 
-// // GetSymbol returns the symbol for a currency code.
-// func GetSymbol(currencyCode string, locale Locale) (symbol string, ok bool) {
-// 	if currencyCode == "" || !IsValid(currencyCode) {
-// 		return currencyCode, false
-// 	}
-// 	symbols, ok := currencySymbols[currencyCode]
-// 	if !ok {
-// 		return currencyCode, true
-// 	}
-// 	enLocale := Locale{Language: "en"}
-// 	enUSLocale := Locale{Language: "en", Territory: "US"}
-// 	if locale == enLocale || locale == enUSLocale {
-// 		// The "en"/"en-US" symbol is always first.
-// 		return symbols[0].symbol, true
-// 	}
+func GetDigits(amount Amount) (digits uint8, ok bool) {
+	if amount.unit == unitCurrency {
+		return GetCurrencyDigits(amount.code)
+	}
 
-// 	for {
-// 		localeID := locale.String()
-// 		for _, s := range symbols {
-// 			if contains(s.locales, localeID) {
-// 				symbol = s.symbol
-// 				break
-// 			}
-// 		}
-// 		if symbol != "" {
-// 			break
-// 		}
-// 		locale = locale.GetParent()
-// 		if locale.IsEmpty() {
-// 			break
-// 		}
-// 	}
+	// TODO: find out for other unit type
+	return 2, true
+}
 
-// 	return symbol, true
-// }
+// GetSymbol returns the symbol for a currency code.
+func GetSymbol(currencyCode string, locale *dto.Locale) (symbol string, ok bool) {
+	if currencyCode == "" || !IsValid(currencyCode) {
+		return currencyCode, false
+	}
+
+	l := locale
+
+	for {
+		if currency, ok := l.Currencies[currencyCode]; ok {
+			if currency.Symbol != "" {
+				return currency.Symbol, true
+			}
+		}
+
+		if l.Parent != nil {
+			l = l.Parent
+		} else {
+			return currencyCode, true
+		}
+	}
+}
 
 // // getFormat returns the format for a locale.
 // func getFormat(locale Locale) currencyFormat {

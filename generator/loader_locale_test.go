@@ -12,7 +12,6 @@ import (
 )
 
 func GetCLDR() *CLDR {
-
 	cldr := &CLDR{
 		Validities: []*Validity{
 			&Validity{"region", []string{"AC", "AD", "CD", "CF", "CG", "HK", "HM", "HN", "IO"}, "regular"},

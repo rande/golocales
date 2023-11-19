@@ -12,8 +12,9 @@ import (
 )
 
 type Currency struct {
-	Code string
-	Name string
+	Code   string
+	Name   string
+	Symbol string
 }
 
 func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
@@ -22,7 +23,7 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	list := cldr.GetValidity("currency", "regular")
 
 	if list == nil {
-		fmt.Printf("No currencies found\n")
+		fmt.Printf("[%s] No currencies found\n", locale.Code)
 		return
 	}
 
@@ -45,9 +46,15 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			name = displayName.Text
 		}
 
+		symbol := ""
+		if len(t.Symbol) > 0 {
+			symbol = t.Symbol[0].Text
+		}
+
 		currencies[t.Type] = Currency{
-			Code: t.Type,
-			Name: name,
+			Code:   t.Type,
+			Name:   name,
+			Symbol: symbol,
 		}
 	}
 
