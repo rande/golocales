@@ -56,43 +56,38 @@ var locale = &dto.Locale{
         },
         MinimumGroupingDigits: {{ .Locale.Number.MinimumGroupingDigits }},
         DefaultNumberSystem: "{{ .Locale.Number.DefaultNumberSystem }}",
-    {{ if .Locale.Number.Decimals }}
-        Decimals: map[string]*dto.FormatGroup{
-            {{- range $key, $value := .Locale.Number.Decimals }}
-                "{{$key}}": &dto.FormatGroup{
-                    {{ if .Long }}
-                    Long: []*dto.NumberFormat{ // len {{ len .Long }}
-                        {{- range .Long }}
-                                {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
-                        {{- end }}
-                    },
-                    {{- else -}}
-                    // Long is empty
-                    {{- end }}
-                    {{ if .Short }}
-                    Short: []*dto.NumberFormat{ // len {{ len .Short }}
-                        {{- range .Short }}
-                                {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
-                        {{- end }}
-                    },
-                    {{- else -}}
-                    // Short is empty
-                    {{- end }}
-                    {{ if .Default }}
-                    Default: []*dto.NumberFormat{ // len {{ len .Default }}
-                        {{- range .Default }}
-                                {Type: "{{.Type}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
-                        {{- end }}
-                    },
-                    {{- else -}}
-                    // Default is empty
-                    {{- end }}
+{{ if .Locale.Number.Decimals }}
+        Decimals: map[string]dto.FormatGroup{
+            {{- range $numberingSystem, $group := .Locale.Number.Decimals }}
+                // key is the numbering system
+                "{{$numberingSystem}}": dto.FormatGroup{
+                    {{- range $type, $pattern := $group }}
+                        "{{ $type }}": []*dto.NumberFormat{ // len {{ len $pattern }}
+                            {{- range $pattern }}
+                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
+                            {{- end }}
+                        },
+                    {{ end }}
                 },
             {{- end -}}
         },
-    {{ else }}
-    // Decimal is empty
-    {{ end }}
+{{- end }}
+{{ if .Locale.Number.Currencies }}
+        Currencies: map[string]dto.FormatGroup{
+            {{- range $numberingSystem, $group := .Locale.Number.Currencies }}
+                // key is the numbering system
+                "{{$numberingSystem}}": dto.FormatGroup{
+                    {{- range $type, $pattern := $group }}
+                        "{{ $type }}": []*dto.NumberFormat{ // len {{ len $pattern }}
+                            {{- range $pattern }}
+                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
+                            {{- end }}
+                        },
+                    {{ end }}
+                },
+            {{- end -}}
+        },
+{{- end }}
     },
 }
 

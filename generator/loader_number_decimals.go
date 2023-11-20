@@ -5,11 +5,7 @@
 
 package main
 
-type FormatGroup struct {
-	Default []*NumberFormat
-	Long    []*NumberFormat
-	Short   []*NumberFormat
-}
+type FormatGroup map[string][]*NumberFormat
 
 func AttachNumberDecimals(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	for _, t := range ldml.Numbers.DecimalFormats {
@@ -30,11 +26,7 @@ func AttachNumberDecimals(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 			// a code is defined in the locale, so we need to override the default values
 			if locale.Number.Decimals[t.NumberSystem] == nil {
-				locale.Number.Decimals[t.NumberSystem] = &FormatGroup{
-					Long:    []*NumberFormat{},
-					Short:   []*NumberFormat{},
-					Default: []*NumberFormat{},
-				}
+				locale.Number.Decimals[t.NumberSystem] = FormatGroup{}
 			}
 
 			// then we iterate over the patterns
@@ -47,14 +39,7 @@ func AttachNumberDecimals(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 				AttachPattern(format)
 
-				switch code {
-				case "long":
-					locale.Number.Decimals[t.NumberSystem].Long = append(locale.Number.Decimals[t.NumberSystem].Long, format)
-				case "short":
-					locale.Number.Decimals[t.NumberSystem].Short = append(locale.Number.Decimals[t.NumberSystem].Short, format)
-				case "default":
-					locale.Number.Decimals[t.NumberSystem].Default = append(locale.Number.Decimals[t.NumberSystem].Default, format)
-				}
+				locale.Number.Decimals[t.NumberSystem][code] = append(locale.Number.Decimals[t.NumberSystem][code], format)
 			}
 		}
 	}

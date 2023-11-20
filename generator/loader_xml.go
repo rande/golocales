@@ -458,9 +458,14 @@ type Ldml struct {
 				} `xml:"percentFormat"`
 			} `xml:"percentFormatLength"`
 		} `xml:"percentFormats"`
-		CurrencyFormats struct {
-			Text                 string `xml:",chardata"`
-			NumberSystem         string `xml:"numberSystem,attr"`
+		CurrencyFormats []struct {
+			Text         string `xml:",chardata"`
+			NumberSystem string `xml:"numberSystem,attr"`
+			Alias        struct {
+				Text   string `xml:",chardata"`
+				Source string `xml:"source,attr"`
+				Path   string `xml:"path,attr"`
+			} `xml:"alias"`
 			CurrencyFormatLength []struct {
 				Text           string `xml:",chardata"`
 				Type           string `xml:"type,attr"`

@@ -22,6 +22,7 @@ func TestFormatter_Locale(t *testing.T) {
 	locale := fr.Locale()
 	formatter := golocales.NewFormatter(locale)
 	got := formatter.Locale().String()
+	
 	if got != "fr" {
 		t.Errorf("got %v, want fr", got)
 	}

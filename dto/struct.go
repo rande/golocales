@@ -13,7 +13,8 @@ type Currency struct {
 
 type Number struct {
 	Symbols               map[string]*Symbol
-	Decimals              map[string]*FormatGroup
+	Decimals              map[string]FormatGroup
+	Currencies            map[string]FormatGroup
 	DefaultNumberSystem   string
 	MinimumGroupingDigits int
 }
@@ -44,16 +45,13 @@ type Symbol struct {
 	PerMilleSign           string
 }
 
-type FormatGroup struct {
-	Default []*NumberFormat
-	Long    []*NumberFormat
-	Short   []*NumberFormat
-}
+type FormatGroup map[string][]*NumberFormat
 
 type NumberFormat struct {
 	Type                  string
 	Count                 string
 	Pattern               string
+	Alt                   string
 	PrimaryGroupingSize   int
 	SecondaryGroupingSize int
 	StandardPattern       string
@@ -76,34 +74,32 @@ func (locale *Locale) String() string {
 }
 
 func (locale *Locale) GetDecimalFormats(system, name string) []*NumberFormat {
-	if format, ok := locale.Number.Decimals[system]; ok {
-		if name == "long" {
-			if len(format.Long) == 0 {
-				return locale.Parent.GetDecimalFormats(system, name)
+	if systemFormat, ok := locale.Number.Decimals[system]; ok {
+		if format, ok := systemFormat[name]; ok {
+			if len(format) > 0 {
+				return format
 			}
-
-			return format.Long
-		}
-
-		if name == "short" {
-			if len(format.Short) == 0 {
-				return locale.Parent.GetDecimalFormats(system, name)
-			}
-
-			return format.Short
-		}
-
-		if name == "default" {
-			if len(format.Default) == 0 {
-				return locale.Parent.GetDecimalFormats(system, name)
-			}
-
-			return format.Default
 		}
 	}
 
 	if locale.Parent != nil {
 		locale.Parent.GetDecimalFormats(system, name)
+	}
+
+	return nil
+}
+
+func (locale *Locale) GetCurrencyFormats(system, name string) []*NumberFormat {
+	if systemFormat, ok := locale.Number.Currencies[system]; ok {
+		if format, ok := systemFormat[name]; ok {
+			if len(format) > 0 {
+				return format
+			}
+		}
+	}
+
+	if locale.Parent != nil {
+		locale.Parent.GetCurrencyFormats(system, name)
 	}
 
 	return nil

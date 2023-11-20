@@ -14,15 +14,18 @@ const DefaultNumberSystem = "latn"
 
 type Number struct {
 	Symbols               map[string]*Symbol
-	Decimals              map[string]*FormatGroup
+	Decimals              map[string]FormatGroup
+	Currencies            map[string]FormatGroup // numbering system => format => format
 	DefaultNumberSystem   string
 	MinimumGroupingDigits int
 }
 
+// share with currency, number and percent
 type NumberFormat struct {
 	Type                  string
 	Count                 string
 	Pattern               string
+	Alt                   string
 	PrimaryGroupingSize   int
 	SecondaryGroupingSize int
 	StandardPattern       string
