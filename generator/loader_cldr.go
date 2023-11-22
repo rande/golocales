@@ -9,6 +9,7 @@ type CLDR struct {
 	Path       string
 	Validities []*Validity
 	RootLocale *Locale
+	MetaZones  []*MetaZone
 }
 
 func (cldr *CLDR) GetValidity(code, status string) *Validity {

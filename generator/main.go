@@ -36,30 +36,72 @@ func main() {
 	cldr := &CLDR{}
 	cldr.Path = CldrPath
 
-	// validities are required to load root module
-	filepath.Walk(CldrPath+"/validity", func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
-		}
+	// load validity files
+	validityFiles := []string{
+		"currency.xml",
+		"language.xml",
+		"region.xml",
+		// "script.xml",
+		// "subdivision.xml",
+		// "unit.xml",
+		// "variant.xml",
+	}
 
-		// fmt.Printf("Load supplemental file %s\n", info.Name())
+	// validities are required to load root module
+	for _, file := range validityFiles {
+		fmt.Printf(" > Loading validity file: %s\n", file)
 
 		supplemental := &SupplementalData{}
-		if err := LoadXml(path, supplemental); err != nil {
+		if err := LoadXml(CldrPath+"/validity/"+file, supplemental); err != nil {
 			log.Panic(err.Error())
 		}
 
-		AttachValidity(cldr, supplemental)
+		AttachSupplemental(cldr, supplemental)
+	}
 
-		return nil
-	})
+	// load supplemental files
+	supplementalFiles := []string{
+		// "attributeValueValidity.xml",
+		// "characters.xml",
+		// "coverageLevels.xml",
+		// "dayPeriods.xml",
+		// "genderList.xml",
+		// "grammaticalFeatures.xml",
+		// "languageGroup.xml",
+		// "languageInfo.xml",
+		// "likelySubtags.xml",
+		"metaZones.xml",
+		// "numberingSystems.xml",
+		// "ordinals.xml",
+		// "pluralRanges.xml",
+		// "plurals.xml",
+		// "rgScope.xml",
+		// "subdivisions.xml",
+		// "supplementalData.xml",
+		// "supplementalMetadata.xml",
+		// "units.xml",
+		// "windowsZones.xml",
+	}
 
+	for _, file := range supplementalFiles {
+		fmt.Printf(" > Loading supplemental file: %s\n", file)
+
+		supplemental := &SupplementalData{}
+		if err := LoadXml(CldrPath+"/supplemental/"+file, supplemental); err != nil {
+			log.Panic(err.Error())
+		}
+
+		AttachSupplemental(cldr, supplemental)
+	}
+
+	fmt.Printf("\nLoading root locale\n")
 	cldr.RootLocale = LoadLocaleFromFile(CldrPath+"/main/root.xml", cldr)
 
 	WriteModule(LocalePath, cldr.RootLocale)
 
 	list := []string{"en.xml", "fr.xml", "root.xml"}
 
+	fmt.Printf("\nLoading locales\n")
 	filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || info.Name() == "root.xml" {
 			return nil
@@ -68,7 +110,7 @@ func main() {
 		if !slices.Contains(list, info.Name()) {
 			return nil
 		}
-		fmt.Printf("Parsing supported case %s\n", info.Name())
+		fmt.Printf("> Parsing supported case %s\n", info.Name())
 
 		code := strings.Split(info.Name(), ".")[0]
 		parts := strings.Split(code, "_")

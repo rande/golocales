@@ -27,7 +27,7 @@ type Locale struct {
 	Territories     map[string]Territory
 	Currencies      map[string]Currency
 	CurrencySymbols map[string]Symbol
-	TimeZones       map[string]TimeZone
+	TimeZones       map[string]*TimeZone
 	Parents         []*Locale
 	Number          *Number
 	Keys            map[string]string

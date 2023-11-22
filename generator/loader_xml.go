@@ -22,6 +22,48 @@ type SupplementalData struct {
 			IdStatus string `xml:"idStatus,attr"`
 		} `xml:"id"`
 	} `xml:"idValidity"`
+	MetaZones struct {
+		Text         string `xml:",chardata"`
+		MetazoneInfo struct {
+			Text     string `xml:",chardata"`
+			Timezone []struct {
+				Text         string `xml:",chardata"`
+				Type         string `xml:"type,attr"`
+				UsesMetazone []struct {
+					Text  string `xml:",chardata"`
+					Mzone string `xml:"mzone,attr"`
+					To    string `xml:"to,attr"`
+					From  string `xml:"from,attr"`
+				} `xml:"usesMetazone"`
+			} `xml:"timezone"`
+		} `xml:"metazoneInfo"`
+		MapTimezones struct {
+			Text        string `xml:",chardata"`
+			Type        string `xml:"type,attr"`
+			TypeVersion string `xml:"typeVersion,attr"`
+			MapZone     []struct {
+				Text      string `xml:",chardata"`
+				Other     string `xml:"other,attr"`
+				Territory string `xml:"territory,attr"`
+				Type      string `xml:"type,attr"`
+			} `xml:"mapZone"`
+		} `xml:"mapTimezones"`
+		MetazoneIds struct {
+			Text       string `xml:",chardata"`
+			MetazoneId []struct {
+				Text    string `xml:",chardata"`
+				ShortId string `xml:"shortId,attr"`
+				LongId  string `xml:"longId,attr"`
+			} `xml:"metazoneId"`
+		} `xml:"metazoneIds"`
+	} `xml:"metaZones"`
+	PrimaryZones struct {
+		Text        string `xml:",chardata"`
+		PrimaryZone []struct {
+			Text    string `xml:",chardata"`
+			Iso3166 string `xml:"iso3166,attr"`
+		} `xml:"primaryZone"`
+	} `xml:"primaryZones"`
 }
 
 type XmlAnnotation struct {
@@ -337,8 +379,10 @@ type Ldml struct {
 			Zone []struct {
 				Text         string `xml:",chardata"`
 				Type         string `xml:"type,attr"`
-				ExemplarCity string `xml:"exemplarCity"`
-				Long         struct {
+				ExemplarCity struct {
+					Text string `xml:",chardata"`
+				} `xml:"exemplarCity"`
+				Long struct {
 					Text     string `xml:",chardata"`
 					Standard string `xml:"standard"`
 					Daylight string `xml:"daylight"`
