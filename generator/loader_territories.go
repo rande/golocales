@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -76,26 +77,26 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	}
 
 	for _, t := range ldml.LocaleDisplayNames.Territories.Territory {
-		// if _, ok := TerritoriesDenyList[t.Type]; ok {
-		// 	continue
-		// }
+		if _, ok := TerritoriesDenyList[t.Type]; ok {
+			continue
+		}
 
 		if !slices.Contains(list.List, strings.ToUpper(t.Type)) {
 			continue
 		}
 
-		// if slices.Contains(TerritoriesWithdrawnCodes, t.Type) {
-		// 	continue
-		// }
+		if slices.Contains(TerritoriesWithdrawnCodes, t.Type) {
+			continue
+		}
 
 		// we don't keep variants or short names.
 		if t.Alt != "" {
 			continue
 		}
 
-		// if _, err := strconv.Atoi(t.Type); err == nil {
-		// 	continue
-		// }
+		if _, err := strconv.Atoi(t.Type); err == nil {
+			continue
+		}
 
 		territories[t.Type] = Territory{
 			Code: t.Type,

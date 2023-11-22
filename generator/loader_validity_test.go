@@ -18,7 +18,7 @@ func Test_Parse_Region(t *testing.T) {
 	countries := ParseValidityValues(message)
 
 	assert.Equal(t, 9, len(countries))
-	assert.Equal(t, []string{"AC", "CD", "CE", "CF", "CG", "AI", "AZ", "BA", "AB"}, countries)
+	assert.Equal(t, []string{"AC", "AD", "AE", "AF", "AG", "AI", "AZ", "BA", "BB"}, countries)
 }
 
 func Test_Parse_Currency(t *testing.T) {

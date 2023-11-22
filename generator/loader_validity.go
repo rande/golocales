@@ -5,7 +5,9 @@
 
 package main
 
-import "strings"
+import (
+	"strings"
+)
 
 func AttachValidity(cldr *CLDR, supplemental *SupplementalData) {
 	for _, id := range supplemental.IdValidity.ID {
@@ -45,7 +47,7 @@ func ParseValidityValues(message string) []string {
 
 		for letter <= to-1 {
 			letter++
-			partials = append(partials, string([]byte{from[1], letter}))
+			partials = append(partials, string([]byte{from[0], letter}))
 		}
 	}
 
