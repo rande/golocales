@@ -22,7 +22,7 @@ func TestFormatter_Locale(t *testing.T) {
 	locale := fr.Locale()
 	formatter := golocales.NewFormatter(locale)
 	got := formatter.Locale().String()
-	
+
 	if got != "fr" {
 		t.Errorf("got %v, want fr", got)
 	}
@@ -50,7 +50,7 @@ func TestFormatter_Format(t *testing.T) {
 		// {"1234.00", "EUR", "de-CH", "€\u00a01’234.00"},
 		// {"1234.00", "EUR", "sr", "1.234,00\u00a0€"},
 
-		// {"1234.00", "CHF", "en", "CHF\u00a01,234.00", en.Locale()},
+		{"1234.00", "CHF", "en", "CHF\u00a01,234.00", en.Locale()},
 		// {"1234.00", "CHF", "de-CH", "CHF\u00a01’234.00"},
 		// {"1234.00", "CHF", "sr", "1.234,00\u00a0CHF"},
 

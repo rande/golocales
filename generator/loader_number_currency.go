@@ -5,8 +5,6 @@
 
 package main
 
-import "fmt"
-
 // <currencyFormats numberSystem="latn">
 //   <currencyFormatLength> == default if not defined
 //       <currencyFormat type="standard">
@@ -55,8 +53,6 @@ func AttachNumberCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		for _, cfl := range cfs.CurrencyFormatLength {
 			code := ifEmptyString(cfl.Type, "default")
 
-			fmt.Printf("AttachNumberCurrencies: %s, %s\n", cfs.NumberSystem, code)
-
 			// then we iterate over the patterns
 			// <currencyFormat type="standard">
 			for _, cf := range cfl.CurrencyFormat {
@@ -64,8 +60,6 @@ func AttachNumberCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 				if locale.Number.Currencies[cfs.NumberSystem] == nil {
 					locale.Number.Currencies[cfs.NumberSystem] = FormatGroup{}
 				}
-
-				fmt.Printf("\nCurrencyFormat: %s \n", cf.Type)
 
 				key := code + "_" + cf.Type
 

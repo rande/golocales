@@ -77,6 +77,7 @@ func AttachPattern(format *NumberFormat) {
 			format.SecondaryGroupingSize = len(numberGroups[1])
 		}
 	}
+
 	// Strip the grouping info from the patterns, now that it is available separately.
 	format.StandardPattern = processPattern(format.Pattern)
 }

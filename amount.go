@@ -178,6 +178,18 @@ func (a Amount) String() string {
 	panic("Invalid type")
 }
 
+func (a Amount) IsCurrency() bool {
+	return a.unit == unitCurrency
+}
+
+func (a Amount) IsNumber() bool {
+	return a.unit == unitEmpty
+}
+
+func (a Amount) IsPercent() bool {
+	return a.unit == unitPercent
+}
+
 // BigInt returns a in minor units, as a big.Int.
 func (a Amount) BigInt() *big.Int {
 	r := a.Round()

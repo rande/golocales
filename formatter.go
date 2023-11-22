@@ -40,9 +40,9 @@ var localDigits = map[string]string{
 
 // Formatter formats and parses currency amounts.
 type Formatter struct {
-	locale *dto.Locale
-	format *dto.NumberFormat
-	symbol *dto.Symbol
+	locale  *dto.Locale
+	formats map[string]*dto.NumberFormat
+	symbol  *dto.Symbol
 
 	// NoGrouping turns off grouping of major digits.
 	// Defaults to false.
@@ -69,16 +69,26 @@ type Formatter struct {
 
 // NewFormatter creates a new formatter for the given locale.
 func NewFormatter(locale *dto.Locale) *Formatter {
-	formats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
+	// load correct formatter
 
-	if formats != nil && len(formats) == 0 {
+	cFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_standard")
+	dFormats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
+
+	if cFormats != nil && len(cFormats) == 0 {
+		panic(fmt.Sprintf("Unable to find default currency formats: %s", locale.Name))
+	}
+
+	if dFormats != nil && len(dFormats) == 0 {
 		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
 	}
 
 	f := &Formatter{
-		locale:          locale,
-		symbol:          locale.GetSymbol(locale.Number.DefaultNumberSystem),
-		format:          formats[0],
+		locale: locale,
+		symbol: locale.GetSymbol(locale.Number.DefaultNumberSystem),
+		formats: map[string]*dto.NumberFormat{
+			"currency": cFormats[0],
+			"decimal":  dFormats[0],
+		},
 		minDigits:       DefaultDigits,
 		maxDigits:       6,
 		roundingMode:    RoundHalfUp,
@@ -96,7 +106,19 @@ func (f *Formatter) Locale() *dto.Locale {
 
 // Format formats a currency amount.
 func (f *Formatter) Format(amount Amount) string {
-	pattern := f.format.StandardPattern
+	pattern := ""
+	if amount.IsCurrency() {
+		pattern = f.formats["currency"].StandardPattern
+	}
+
+	if amount.IsNumber() {
+		pattern = f.formats["decimal"].StandardPattern
+	}
+
+	if pattern == "" {
+		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
+	}
+
 	if amount.IsNegative() {
 		// The minus sign will be provided by the pattern.
 		amount, _ = amount.Mul("-1")
@@ -209,7 +231,7 @@ func (f *Formatter) formatNumber(amount Amount) string {
 	}
 	amount = amount.RoundTo(maxDigits, f.roundingMode)
 	numberParts := strings.Split(amount.Number(), ".")
-	majorDigits := f.groupMajorDigits(numberParts[0])
+	majorDigits := f.groupMajorDigits(numberParts[0], amount.unit)
 	minorDigits := ""
 	if len(numberParts) == 2 {
 		minorDigits = numberParts[1]
@@ -254,14 +276,32 @@ func (f *Formatter) formatCurrency(currencyCode string) string {
 }
 
 // groupMajorDigits groups major digits according to the currency format.
-func (f *Formatter) groupMajorDigits(majorDigits string) string {
-	if f.noGrouping || f.format.PrimaryGroupingSize == 0 {
+func (f *Formatter) groupMajorDigits(majorDigits string, unit unitSystem) string {
+
+	var format *dto.NumberFormat
+	if unit == unitEmpty {
+		format = f.formats["decimal"]
+	}
+
+	if unit == unitCurrency {
+		format = f.formats["decimal"]
+	}
+
+	if unit == unitPercent {
+		format = f.formats["percent"]
+	}
+
+	if format == nil {
+		panic("No format found")
+	}
+
+	if f.noGrouping || format.PrimaryGroupingSize == 0 {
 		return majorDigits
 	}
 	numDigits := len(majorDigits)
 	minDigits := int(f.locale.Number.MinimumGroupingDigits)
-	primarySize := int(f.format.PrimaryGroupingSize)
-	secondarySize := int(f.format.SecondaryGroupingSize)
+	primarySize := int(format.PrimaryGroupingSize)
+	secondarySize := int(format.SecondaryGroupingSize)
 	if numDigits < (minDigits + primarySize) {
 		return majorDigits
 	}
