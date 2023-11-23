@@ -13,6 +13,7 @@ import (
 	"sort"
 
 	"github.com/rande/golocales/dto"
+	"github.com/rande/golocales/locales/root"
 )
 
 // DefaultDigits is a placeholder for each currency's number of fraction digits.
@@ -37,7 +38,7 @@ func IsValid(currencyCode string) bool {
 	if currencyCode == "" {
 		return true
 	}
-	_, ok := currencies[currencyCode]
+	_, ok := root.Locale().Currencies[currencyCode]
 
 	return ok
 }
@@ -47,7 +48,7 @@ func GetNumericCode(currencyCode string) (numericCode string, ok bool) {
 	if currencyCode == "" || !IsValid(currencyCode) {
 		return "000", false
 	}
-	return currencies[currencyCode].numericCode, true
+	return root.Locale().Currencies[currencyCode].Numeric, true
 }
 
 // GetDigits returns the number of fraction digits for a currency code.
@@ -55,7 +56,7 @@ func GetCurrencyDigits(currencyCode string) (digits uint8, ok bool) {
 	if currencyCode == "" || !IsValid(currencyCode) {
 		return 0, false
 	}
-	return currencies[currencyCode].digits, true
+	return root.Locale().Currencies[currencyCode].Digits, true
 }
 
 func GetDigits(amount Amount) (digits uint8, ok bool) {

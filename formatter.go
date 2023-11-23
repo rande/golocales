@@ -64,7 +64,7 @@ type Formatter struct {
 	// SymbolMap specifies custom symbols for individual currency codes.
 	// For example, "USD": "$" means that the $ symbol will be used even if
 	// the current locale's symbol is different ("US$", "$US", etc).
-	symbolMap map[string]string
+	SymbolMap map[string]string
 }
 
 // NewFormatter creates a new formatter for the given locale.
@@ -93,7 +93,7 @@ func NewFormatter(locale *dto.Locale) *Formatter {
 		maxDigits:       6,
 		roundingMode:    RoundHalfUp,
 		currencyDisplay: DisplaySymbol,
-		symbolMap:       make(map[string]string),
+		SymbolMap:       make(map[string]string),
 	}
 
 	return f
@@ -119,10 +119,14 @@ func (f *Formatter) Format(amount Amount) string {
 		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
 	}
 
-	if amount.IsNegative() {
-		// The minus sign will be provided by the pattern.
-		amount, _ = amount.Mul("-1")
-	}
+	// Thomas: I have commented this operation as it seems to be a bug
+	//         the output of amount is 1234.00 for negative amount
+	//         and the replace cannot finc the minus sign anymore
+	// if amount.IsNegative() {
+	// 	// The minus sign will be provided by the pattern.
+	// 	amount, _ = amount.Mul("-1")
+	// }
+
 	formattedNumber := f.formatNumber(amount)
 	formattedCurrency := f.formatCurrency(amount.Code())
 
@@ -147,6 +151,7 @@ func (f *Formatter) Format(amount Amount) string {
 		"+", f.symbol.PlusSign,
 		"-", f.symbol.MinusSign,
 	}
+
 	if formattedCurrency == "" {
 		// Many patterns have a non-breaking space between
 		// the number and currency, not needed in this case.
@@ -261,7 +266,7 @@ func (f *Formatter) formatCurrency(currencyCode string) string {
 	var formatted string
 	switch f.currencyDisplay {
 	case DisplaySymbol:
-		if symbol, ok := f.symbolMap[currencyCode]; ok {
+		if symbol, ok := f.SymbolMap[currencyCode]; ok {
 			formatted = symbol
 		} else {
 			formatted, _ = GetSymbol(currencyCode, f.locale)

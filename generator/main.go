@@ -35,6 +35,9 @@ func main() {
 
 	cldr := &CLDR{}
 	cldr.Path = CldrPath
+	cldr.Locales = map[string]*Locale{}
+	cldr.Territories = map[string]*Territory{}
+	cldr.Currencies = map[string]*Currency{}
 
 	// load validity files
 	validityFiles := []string{
@@ -77,7 +80,7 @@ func main() {
 		// "plurals.xml",
 		// "rgScope.xml",
 		// "subdivisions.xml",
-		// "supplementalData.xml",
+		"supplementalData.xml",
 		// "supplementalMetadata.xml",
 		// "units.xml",
 		// "windowsZones.xml",
@@ -99,7 +102,7 @@ func main() {
 
 	WriteModule(LocalePath, cldr.RootLocale)
 
-	list := []string{"en.xml", "fr.xml", "root.xml"}
+	list := []string{"en.xml", "fr.xml", "fr_CA.xml", "sr.xml"}
 
 	fmt.Printf("\nLoading locales\n")
 	filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {
@@ -110,39 +113,36 @@ func main() {
 		if !slices.Contains(list, info.Name()) {
 			return nil
 		}
-		fmt.Printf("> Parsing supported case %s\n", info.Name())
+
+		fmt.Printf("\n --- [ %s ] ---\n", info.Name())
 
 		code := strings.Split(info.Name(), ".")[0]
 		parts := strings.Split(code, "_")
 
 		if len(parts) > 2 { // no supported for now
-			fmt.Printf("Skipping non supported case %s\n", code)
+			fmt.Printf("> Skipping non supported case %s\n", code)
 			return nil
 		}
 
-		// fr, en, ... skip this will be created by another file, ie: fr_FR, en_GB
-		// if len(parts) == 1 {
-		// 	return nil
-		// }
+		fmt.Printf("> Parsing supported case %s\n", info.Name())
 
-		// langCode := parts[0]
+		if len(parts) == 2 {
+			langCode := parts[0]
+			// check if the base lang exist, if not created too
+			langModulePath := LocalePath + "/" + langCode
+			if _, err := os.Stat(langModulePath); os.IsNotExist(err) {
+				locale := LoadLocaleFromFile(CldrPath+"/main/"+langCode+".xml", cldr)
+				fmt.Printf("> Generate file base module %s\n", locale.Code)
+				WriteModule(LocalePath, locale)
 
-		// // check if the base lang exist, if not created too
-		// langModulePath := LocalePath + "/" + langCode
-		// if _, err := os.Stat(langModulePath); os.IsNotExist(err) {
-		// 	locale := LoadLocaleFromFile(CldrPath+"/main/"+langCode+".xml", cldr)
-		// 	// fmt.Printf("Generate file %s\n", locale.Code)
-		// 	WriteModule(LocalePath, locale)
-		// }
+				cldr.Locales[locale.Code] = locale
+			}
+		}
 
 		locale := LoadLocaleFromFile(path, cldr)
+		cldr.Locales[locale.Code] = locale
 
-		if !locale.IsBase {
-			// fmt.Printf("Skipping territory %s for now\n", locale.Code)
-			return nil
-		}
-
-		// fmt.Printf("Generate file %s\n", locale.Code)
+		fmt.Printf("> Generate file module %s\n", locale.Code)
 		WriteModule(LocalePath, locale)
 
 		return nil

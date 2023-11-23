@@ -13,9 +13,11 @@ import (
 )
 
 type Territory struct {
-	Code string
-	Name string
-	Alt  string
+	Code    string
+	Name    string
+	Alt     string
+	Numeric string
+	Alpha3  string
 }
 
 var TerritoriesDenyList = map[string]bool{
@@ -67,7 +69,7 @@ var TerritoriesWithdrawnCodes = []string{
 }
 
 func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
-	var territories map[string]Territory = make(map[string]Territory)
+	var territories map[string]*Territory = map[string]*Territory{}
 
 	list := cldr.GetValidity("region", "regular")
 
@@ -76,8 +78,33 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		return
 	}
 
+	if locale.IsRoot {
+		for _, t := range cldr.Territories {
+
+			if _, ok := TerritoriesDenyList[t.Code]; ok {
+				continue
+			}
+
+			if !slices.Contains(list.List, strings.ToUpper(t.Code)) {
+				continue
+			}
+
+			if slices.Contains(TerritoriesWithdrawnCodes, t.Code) {
+				continue
+			}
+
+			locale.Territories[t.Code] = t
+		}
+
+		return
+	}
+
 	for _, t := range ldml.LocaleDisplayNames.Territories.Territory {
 		if _, ok := TerritoriesDenyList[t.Type]; ok {
+			continue
+		}
+
+		if _, ok := cldr.RootLocale.Territories[t.Type]; !ok {
 			continue
 		}
 
@@ -98,10 +125,12 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			continue
 		}
 
-		territories[t.Type] = Territory{
-			Code: t.Type,
-			Name: t.Text,
-			Alt:  t.Alt,
+		territories[t.Type] = &Territory{
+			Code:    t.Type,
+			Name:    t.Text,
+			Alt:     t.Alt,
+			Alpha3:  cldr.RootLocale.Territories[t.Type].Alpha3,
+			Numeric: cldr.RootLocale.Territories[t.Type].Numeric,
 		}
 	}
 

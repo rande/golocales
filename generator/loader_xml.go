@@ -64,6 +64,198 @@ type SupplementalData struct {
 			Iso3166 string `xml:"iso3166,attr"`
 		} `xml:"primaryZone"`
 	} `xml:"primaryZones"`
+
+	// -- supplememtalData.xml
+	CurrencyData struct {
+		Text      string `xml:",chardata"`
+		Fractions struct {
+			Text string `xml:",chardata"`
+			Info []struct {
+				Text         string `xml:",chardata"`
+				Iso4217      string `xml:"iso4217,attr"`
+				Digits       string `xml:"digits,attr"`
+				Rounding     string `xml:"rounding,attr"`
+				CashDigits   string `xml:"cashDigits,attr"`
+				CashRounding string `xml:"cashRounding,attr"`
+			} `xml:"info"`
+		} `xml:"fractions"`
+		Region []struct {
+			Text     string `xml:",chardata"`
+			Iso3166  string `xml:"iso3166,attr"`
+			Currency []struct {
+				Text    string `xml:",chardata"`
+				Iso4217 string `xml:"iso4217,attr"`
+				From    string `xml:"from,attr"`
+				To      string `xml:"to,attr"`
+				Tender  string `xml:"tender,attr"`
+			} `xml:"currency"`
+		} `xml:"region"`
+	} `xml:"currencyData"`
+	TerritoryContainment struct {
+		Text  string `xml:",chardata"`
+		Group []struct {
+			Text     string `xml:",chardata"`
+			Type     string `xml:"type,attr"`
+			Contains string `xml:"contains,attr"`
+			Status   string `xml:"status,attr"`
+			Grouping string `xml:"grouping,attr"`
+		} `xml:"group"`
+	} `xml:"territoryContainment"`
+	LanguageData struct {
+		Text     string `xml:",chardata"`
+		Language []struct {
+			Text        string `xml:",chardata"`
+			Type        string `xml:"type,attr"`
+			Scripts     string `xml:"scripts,attr"`
+			Territories string `xml:"territories,attr"`
+			Alt         string `xml:"alt,attr"`
+		} `xml:"language"`
+	} `xml:"languageData"`
+	TerritoryInfo struct {
+		Text      string `xml:",chardata"`
+		Territory []struct {
+			Text               string `xml:",chardata"`
+			Type               string `xml:"type,attr"`
+			Gdp                string `xml:"gdp,attr"`
+			LiteracyPercent    string `xml:"literacyPercent,attr"`
+			Population         string `xml:"population,attr"`
+			LanguagePopulation []struct {
+				Text              string `xml:",chardata"`
+				Type              string `xml:"type,attr"`
+				PopulationPercent string `xml:"populationPercent,attr"`
+				References        string `xml:"references,attr"`
+				OfficialStatus    string `xml:"officialStatus,attr"`
+				WritingPercent    string `xml:"writingPercent,attr"`
+				LiteracyPercent   string `xml:"literacyPercent,attr"`
+			} `xml:"languagePopulation"`
+		} `xml:"territory"`
+	} `xml:"territoryInfo"`
+	CalendarData struct {
+		Text     string `xml:",chardata"`
+		Calendar []struct {
+			Text           string `xml:",chardata"`
+			Type           string `xml:"type,attr"`
+			CalendarSystem struct {
+				Text string `xml:",chardata"`
+				Type string `xml:"type,attr"`
+			} `xml:"calendarSystem"`
+			Eras struct {
+				Text string `xml:",chardata"`
+				Era  []struct {
+					Text    string `xml:",chardata"`
+					Type    string `xml:"type,attr"`
+					End     string `xml:"end,attr"`
+					Code    string `xml:"code,attr"`
+					Aliases string `xml:"aliases,attr"`
+					Start   string `xml:"start,attr"`
+				} `xml:"era"`
+			} `xml:"eras"`
+			InheritEras struct {
+				Text     string `xml:",chardata"`
+				Calendar string `xml:"calendar,attr"`
+			} `xml:"inheritEras"`
+		} `xml:"calendar"`
+	} `xml:"calendarData"`
+	CalendarPreferenceData struct {
+		Text               string `xml:",chardata"`
+		CalendarPreference []struct {
+			Text        string `xml:",chardata"`
+			Territories string `xml:"territories,attr"`
+			Ordering    string `xml:"ordering,attr"`
+		} `xml:"calendarPreference"`
+	} `xml:"calendarPreferenceData"`
+	WeekData struct {
+		Text    string `xml:",chardata"`
+		MinDays []struct {
+			Text        string `xml:",chardata"`
+			Count       string `xml:"count,attr"`
+			Territories string `xml:"territories,attr"`
+		} `xml:"minDays"`
+		FirstDay []struct {
+			Text        string `xml:",chardata"`
+			Day         string `xml:"day,attr"`
+			Territories string `xml:"territories,attr"`
+			Alt         string `xml:"alt,attr"`
+			References  string `xml:"references,attr"`
+		} `xml:"firstDay"`
+		WeekendStart []struct {
+			Text        string `xml:",chardata"`
+			Day         string `xml:"day,attr"`
+			Territories string `xml:"territories,attr"`
+		} `xml:"weekendStart"`
+		WeekendEnd []struct {
+			Text        string `xml:",chardata"`
+			Day         string `xml:"day,attr"`
+			Territories string `xml:"territories,attr"`
+		} `xml:"weekendEnd"`
+		WeekOfPreference []struct {
+			Text     string `xml:",chardata"`
+			Ordering string `xml:"ordering,attr"`
+			Locales  string `xml:"locales,attr"`
+		} `xml:"weekOfPreference"`
+	} `xml:"weekData"`
+	TimeData struct {
+		Text  string `xml:",chardata"`
+		Hours []struct {
+			Text      string `xml:",chardata"`
+			Preferred string `xml:"preferred,attr"`
+			Allowed   string `xml:"allowed,attr"`
+			Regions   string `xml:"regions,attr"`
+		} `xml:"hours"`
+	} `xml:"timeData"`
+	MeasurementData struct {
+		Text              string `xml:",chardata"`
+		MeasurementSystem []struct {
+			Text        string `xml:",chardata"`
+			Type        string `xml:"type,attr"`
+			Territories string `xml:"territories,attr"`
+			Category    string `xml:"category,attr"`
+		} `xml:"measurementSystem"`
+		PaperSize []struct {
+			Text        string `xml:",chardata"`
+			Type        string `xml:"type,attr"`
+			Territories string `xml:"territories,attr"`
+		} `xml:"paperSize"`
+	} `xml:"measurementData"`
+	CodeMappings struct {
+		Text           string `xml:",chardata"`
+		TerritoryCodes []struct {
+			Text    string `xml:",chardata"`
+			Type    string `xml:"type,attr"`
+			Numeric string `xml:"numeric,attr"`
+			Alpha3  string `xml:"alpha3,attr"`
+			Fips10  string `xml:"fips10,attr"`
+		} `xml:"territoryCodes"`
+		CurrencyCodes []struct {
+			Text    string `xml:",chardata"`
+			Type    string `xml:"type,attr"`
+			Numeric string `xml:"numeric,attr"`
+		} `xml:"currencyCodes"`
+	} `xml:"codeMappings"`
+	ParentLocales []struct {
+		Text         string `xml:",chardata"`
+		Component    string `xml:"component,attr"`
+		ParentLocale []struct {
+			Text    string `xml:",chardata"`
+			Parent  string `xml:"parent,attr"`
+			Locales string `xml:"locales,attr"`
+		} `xml:"parentLocale"`
+	} `xml:"parentLocales"`
+	PersonNamesDefaults struct {
+		Text                    string `xml:",chardata"`
+		NameOrderLocalesDefault []struct {
+			Text  string `xml:",chardata"`
+			Order string `xml:"order,attr"`
+		} `xml:"nameOrderLocalesDefault"`
+	} `xml:"personNamesDefaults"`
+	References struct {
+		Text      string `xml:",chardata"`
+		Reference []struct {
+			Text string `xml:",chardata"`
+			Type string `xml:"type,attr"`
+			URI  string `xml:"uri,attr"`
+		} `xml:"reference"`
+	} `xml:"references"`
 }
 
 type XmlAnnotation struct {

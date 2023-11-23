@@ -24,11 +24,10 @@ type Locale struct {
 	Code            string
 	Name            string
 	Territory       string
-	Territories     map[string]Territory
-	Currencies      map[string]Currency
+	Territories     map[string]*Territory
+	Currencies      map[string]*Currency
 	CurrencySymbols map[string]Symbol
 	TimeZones       map[string]*TimeZone
-	Parents         []*Locale
 	Number          *Number
 	Keys            map[string]string
 	Annotations     []*Annotation
@@ -40,18 +39,14 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		Code:      ldml.Identity.Language.Type,
 		Name:      ldml.Identity.Language.Type,
 		Territory: ldml.Identity.Territory.Type,
-		Parents:   []*Locale{},
 		Parent:    nil,
 		Number: &Number{
 			Symbols:    map[string]*Symbol{},
 			Decimals:   map[string]FormatGroup{},
 			Currencies: map[string]FormatGroup{},
 		},
-		Keys: map[string]string{},
-	}
-
-	if cldr.RootLocale != nil {
-		locale.Parents = append(locale.Parents, cldr.RootLocale)
+		Keys:        map[string]string{},
+		Territories: map[string]*Territory{},
 	}
 
 	if !locale.IsRoot {
@@ -59,6 +54,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 	}
 
 	if locale.Territory != "" {
+		locale.Parent = cldr.Locales[locale.Code]
 		locale.Code = locale.Code + "_" + locale.Territory
 	} else {
 		locale.IsBase = !locale.IsRoot

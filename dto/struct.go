@@ -5,10 +5,21 @@
 
 package dto
 
-type Territory string
+type Territory struct {
+	Code    string
+	Name    string
+	Numeric string
+	Alpha3  string
+}
+
 type Currency struct {
-	Symbol string
-	Name   string
+	Symbol       string
+	Name         string
+	Digits       uint8
+	Rounding     uint8
+	CashDigits   uint8
+	CashRounding uint8
+	Numeric      string
 }
 
 type Number struct {
@@ -83,7 +94,7 @@ func (locale *Locale) GetDecimalFormats(system, name string) []*NumberFormat {
 	}
 
 	if locale.Parent != nil {
-		locale.Parent.GetDecimalFormats(system, name)
+		return locale.Parent.GetDecimalFormats(system, name)
 	}
 
 	return nil

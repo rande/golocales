@@ -6,10 +6,13 @@
 package main
 
 type CLDR struct {
-	Path       string
-	Validities []*Validity
-	RootLocale *Locale
-	MetaZones  []*MetaZone
+	Path        string
+	Validities  []*Validity
+	RootLocale  *Locale
+	MetaZones   []*MetaZone
+	Locales     map[string]*Locale
+	Territories map[string]*Territory
+	Currencies  map[string]*Currency
 }
 
 func (cldr *CLDR) GetValidity(code, status string) *Validity {

@@ -22,12 +22,20 @@ var locale = &dto.Locale{
     {{- end }}
     Territories: map[string]dto.Territory{ // len {{ len .Territories }}
         {{- range .Territories }}
-            "{{.Code}}": "{{.Name}}",
+            {{ if $.Locale.IsRoot -}}
+                "{{.Code}}": { Numeric: "{{.Numeric}}", Alpha3: "{{.Alpha3}}"},
+            {{- else -}}
+                "{{.Code}}": {Code: "{{.Code}}", Name: "{{.Name}}"},
+            {{- end }}            
         {{- end }}
     },
     Currencies: map[string]*dto.Currency{ // len {{ len .Currencies }}
         {{- range .Currencies }}
-            "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
+            {{ if $.Locale.IsRoot -}}
+                "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Digits: {{.Digits}}, Rounding: {{.Rounding}}, CashDigits: {{.CashDigits}}, CashRounding: {{.CashRounding}}, Numeric: "{{.Numeric}}" },
+            {{- else -}}
+                "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
+            {{- end }}
         {{- end }}
     },
     TimeZones: map[string]dto.TimeZone{ // len {{ len .TimeZones }}

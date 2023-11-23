@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+type Validity struct {
+	From   string
+	List   []string
+	Status string
+}
+
 func AttachValidity(cldr *CLDR, supplemental *SupplementalData) {
 	for _, id := range supplemental.IdValidity.ID {
 		v := &Validity{

@@ -12,13 +12,18 @@ import (
 )
 
 type Currency struct {
-	Code   string
-	Name   string
-	Symbol string
+	Code         string
+	Name         string
+	Symbol       string
+	Digits       string
+	Rounding     string
+	CashDigits   string
+	CashRounding string
+	Numeric      string
 }
 
 func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
-	var currencies map[string]Currency = make(map[string]Currency)
+	var currencies map[string]*Currency = map[string]*Currency{}
 
 	list := cldr.GetValidity("currency", "regular")
 
@@ -51,10 +56,15 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			symbol = t.Symbol[0].Text
 		}
 
-		currencies[t.Type] = Currency{
-			Code:   t.Type,
-			Name:   name,
-			Symbol: symbol,
+		currencies[t.Type] = &Currency{
+			Code:         t.Type,
+			Name:         name,
+			Symbol:       symbol,
+			Digits:       "2",
+			Rounding:     "0",
+			CashDigits:   "0",
+			CashRounding: "0",
+			Numeric:      "",
 		}
 	}
 

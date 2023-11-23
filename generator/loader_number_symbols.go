@@ -63,10 +63,6 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		if t.NumberSystem == "" {
 			continue
 		}
-		// the parent has the same default system, do we can skip the configuration
-		if locale.Parent != nil && locale.Parent.Number.DefaultNumberSystem == t.NumberSystem {
-			continue
-		}
 
 		number := &Symbol{
 			System:                 ifEmptyString(t.NumberSystem, defaultNumber.System),
