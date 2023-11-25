@@ -121,7 +121,7 @@ func (f *Formatter) Format(amount Amount) string {
 
 	// Thomas: I have commented this operation as it seems to be a bug
 	//         the output of amount is 1234.00 for negative amount
-	//         and the replace cannot finc the minus sign anymore
+	//         and the replace cannot find the minus sign anymore
 	// if amount.IsNegative() {
 	// 	// The minus sign will be provided by the pattern.
 	// 	amount, _ = amount.Mul("-1")
@@ -159,6 +159,7 @@ func (f *Formatter) Format(amount Amount) string {
 	} else {
 		replacements = append(replacements, "¤", formattedCurrency)
 	}
+
 	r := strings.NewReplacer(replacements...)
 
 	return r.Replace(pattern)
@@ -256,6 +257,7 @@ func (f *Formatter) formatNumber(amount Amount) string {
 		b.WriteString(f.symbol.Decimal)
 		b.WriteString(minorDigits)
 	}
+
 	formatted := f.localizeDigits(b.String())
 
 	return formatted

@@ -70,9 +70,10 @@ func TestFormatter_Format(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			amount, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
-			formatter := golocales.NewFormatter(tt.locale)
+			amount, err := golocales.NewCurrency(tt.number, tt.currencyCode)
+			assert.NoError(t, err)
 
+			formatter := golocales.NewFormatter(tt.locale)
 			assert.Equal(t, tt.want, formatter.Format(amount))
 		})
 	}

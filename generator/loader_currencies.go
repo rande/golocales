@@ -32,6 +32,13 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		return
 	}
 
+	if locale.IsRoot {
+		// root get all currencies
+		for code, c := range cldr.Currencies {
+			currencies[code] = c
+		}
+	}
+
 	for _, t := range ldml.Numbers.Currencies.Currency {
 		// if _, ok := TerritoriesDenyList[t.Type]; ok {
 		// 	continue
