@@ -37,6 +37,10 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		// 	continue
 		// }
 
+		if _, ok := cldr.Currencies[t.Type]; !ok {
+			continue
+		}
+
 		if !slices.Contains(list.List, strings.ToUpper(t.Type)) {
 			continue
 		}
@@ -60,11 +64,11 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			Code:         t.Type,
 			Name:         name,
 			Symbol:       symbol,
-			Digits:       "2",
-			Rounding:     "0",
-			CashDigits:   "0",
-			CashRounding: "0",
-			Numeric:      "",
+			Digits:       ifEmptyString(cldr.Currencies[t.Type].Digits, "2"),
+			Rounding:     ifEmptyString(cldr.Currencies[t.Type].Rounding, "0"),
+			CashDigits:   ifEmptyString(cldr.Currencies[t.Type].CashDigits, "0"),
+			CashRounding: ifEmptyString(cldr.Currencies[t.Type].CashRounding, "0"),
+			Numeric:      ifEmptyString(cldr.Currencies[t.Type].Numeric, "000"),
 		}
 	}
 

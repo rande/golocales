@@ -37,15 +37,6 @@ package main
 // </currencyFormats>
 
 func AttachNumberCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
-
-	if locale.IsRoot {
-		for _, t := range cldr.Currencies {
-			locale.Currencies[t.Code] = t
-		}
-
-		return
-	}
-
 	// <currencyFormats numberSystem="latn">
 	for _, cfs := range ldml.Numbers.CurrencyFormats {
 		// no symbol is defined, so we skip

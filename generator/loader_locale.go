@@ -47,6 +47,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 		},
 		Keys:        map[string]string{},
 		Territories: map[string]*Territory{},
+		Currencies:  map[string]*Currency{},
 	}
 
 	if !locale.IsRoot {
