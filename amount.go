@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 
 	"github.com/cockroachdb/apd/v3"
@@ -330,10 +331,10 @@ func (a Amount) IsZero() bool {
 // MarshalBinary implements the encoding.BinaryMarshaler interface.
 func (a Amount) MarshalBinary() ([]byte, error) {
 	buf := bytes.Buffer{}
-	buf.WriteString(string(a.unit))
+	buf.WriteString(strconv.Itoa(int(a.unit)))
 	// need to be 3 char long unit
 	if len(a.code) != 3 {
-		panic("Invalid code lenght for amount!")
+		panic("Invalid code length for amount!")
 	}
 	buf.WriteString(a.code)
 	buf.WriteString(a.Number())
@@ -347,16 +348,28 @@ func (a *Amount) UnmarshalBinary(data []byte) error {
 		return InvalidCurrencyCodeError{string(data)}
 	}
 
-	// TODO: ADD THE CORRECT TYPE HERE
-	unit := unitEmpty
+	var unit unitSystem
+	if data[0] == '1' {
+		unit = unitCurrency
+	} else if data[0] == '2' {
+		unit = unitPercent
+	} else if data[0] == '0' {
+		unit = unitEmpty
+	}
+
 	n := string(data[4:])
 	code := string(data[1:4])
+
+	if unit == unitCurrency && !IsValid(code) {
+		return InvalidCurrencyCodeError{string(code)}
+	}
+
 	number := apd.Decimal{}
 	if _, _, err := number.SetString(n); err != nil {
 		return InvalidNumberError{n}
 	}
 
-	a.unit = unit
+	a.unit = unitSystem(unit)
 	a.number = number
 	a.code = code
 

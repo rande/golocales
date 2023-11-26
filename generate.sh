@@ -23,3 +23,5 @@ rm -rf locales/*
 # cat locales/fr/fr.go
 
 du -sh locales
+
+go test .

@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/rande/golocales"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewCurrency(t *testing.T) {
@@ -723,14 +724,12 @@ func TestAmount_Checks(t *testing.T) {
 func TestAmount_MarshalBinary(t *testing.T) {
 	a, _ := golocales.NewCurrency("3.45", "USD")
 	d, err := a.MarshalBinary()
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
+
 	got := string(d)
 	want := "1USD3.45"
-	if got != want {
-		t.Errorf("got %v, want %v", got, want)
-	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, "1USD3.45", got, "got %v, want %v", got, want)
 }
 
 func TestAmount_UnmarshalBinary(t *testing.T) {
@@ -749,7 +748,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 		t.Errorf("got %T, want InvalidCurrencyCodeError", err)
 	}
 
-	d = []byte("USD3,60")
+	d = []byte("1USD3,60")
 	err = a.UnmarshalBinary(d)
 	if e, ok := err.(golocales.InvalidNumberError); ok {
 		if e.Number != "3,60" {
@@ -763,7 +762,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 		t.Errorf("got %T, want InvalidNumberError", err)
 	}
 
-	d = []byte("XXX2.60")
+	d = []byte("1XXX2.60")
 	err = a.UnmarshalBinary(d)
 	if e, ok := err.(golocales.InvalidCurrencyCodeError); ok {
 		if e.CurrencyCode != "XXX" {
@@ -777,7 +776,7 @@ func TestAmount_UnmarshalBinary(t *testing.T) {
 		t.Errorf("got %T, want InvalidCurrencyCodeError", err)
 	}
 
-	d = []byte("USD3.45")
+	d = []byte("1USD3.45")
 	err = a.UnmarshalBinary(d)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)

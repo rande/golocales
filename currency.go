@@ -38,6 +38,7 @@ func IsValid(currencyCode string) bool {
 	if currencyCode == "" {
 		return true
 	}
+
 	_, ok := root.Locale().Currencies[currencyCode]
 
 	return ok
