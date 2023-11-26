@@ -10,6 +10,8 @@ package golocales
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // func TestForCountryCode(t *testing.T) {
@@ -63,9 +65,7 @@ func TestIsValid(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			got := IsValid(tt.currencyCode)
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got, "got %v, want %v", got, tt.want)
 		})
 	}
 }

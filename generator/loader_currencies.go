@@ -35,6 +35,10 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	if locale.IsRoot {
 		// root get all currencies
 		for code, c := range cldr.Currencies {
+			if !slices.Contains(list.List, strings.ToUpper(code)) {
+				continue
+			}
+
 			currencies[code] = c
 		}
 	}
