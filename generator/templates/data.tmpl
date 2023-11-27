@@ -43,6 +43,22 @@ var locale = &dto.Locale{
             "{{.Code}}": "{{.Name}}",
         {{- end }}
     },
+    Calendars: map[string]*dto.Calendar{ // len {{ len .Locale.Calendars }}
+        {{- range $type, $calendar := .Locale.Calendars }}
+            "{{.System}}": &dto.Calendar{
+                System: "{{.System}}",
+                Labels: map[string][]string{ // len {{ len .Labels }}
+                    {{- range $key, $labels := .Labels }}
+                        "{{$key}}": []string{ // len {{ len $labels }}
+                            {{- range $labels }}
+                                "{{.}}",
+                            {{- end }}
+                        },
+                    {{- end }}
+                },
+            },
+        {{- end }}
+    },
     Number: &dto.Number{
         Symbols: map[string]*dto.Symbol{ // len {{ len .Locale.Number.Symbols }}
             {{ range .Locale.Number.Symbols }}
@@ -72,7 +88,7 @@ var locale = &dto.Locale{
                     {{- range $type, $pattern := $group }}
                         "{{ $type }}": []*dto.NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
-                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
+                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
                         },
                     {{ end }}

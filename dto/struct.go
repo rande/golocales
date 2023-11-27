@@ -22,6 +22,11 @@ type Currency struct {
 	Numeric      string
 }
 
+type Calendar struct {
+	System string
+	Labels map[string][]string
+}
+
 type Number struct {
 	Symbols               map[string]*Symbol
 	Decimals              map[string]FormatGroup
@@ -37,6 +42,7 @@ type Locale struct {
 	Territories map[string]Territory
 	Currencies  map[string]*Currency
 	TimeZones   map[string]TimeZone
+	Calendars   map[string]*Calendar
 	Parent      *Locale
 	Number      *Number
 }
