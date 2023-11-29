@@ -24,7 +24,6 @@ type Calendar struct {
 }
 
 func AttachCalendars(locale *Locale, cldr *CLDR, ldml *Ldml) {
-
 	for _, calendar := range ldml.Dates.Calendars.Calendar {
 		// only support gregorian calendar
 		if calendar.Type != "gregorian" {
@@ -219,6 +218,24 @@ func GetPattern(pattern string) (string, string) {
 		return "%d", "t.Second()"
 	case "ss":
 		return "%02d", "t.Second()"
+	case "z":
+		fallthrough
+	case "zz":
+		fallthrough
+	case "zzz":
+		fallthrough
+	case "Z":
+		fallthrough
+	case "ZZ":
+		fallthrough
+	case "ZZZ":
+		return "%s", "t.Format(\"-07:00\")"
+	case "ZZZZ":
+		return "%s", "t.Format(\"PST-07:00\")"
+	case "zzzz":
+		fallthrough
+	case "ZZZZZ":
+		return "%s", "t.Format(\"Z07:00:00\")"
 	}
 
 	return pattern, ""

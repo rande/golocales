@@ -61,7 +61,15 @@ var locale = &dto.Locale{
                 },
                 Formatters: map[string]dto.CalendarFormatter{ 
                     {{- range $key, $formatter := $calendar.Formatters }}
-                        "{{$key}}": func(t *time.Time, calendarSystem string, l *dto.Locale) string {
+                        "{{$key}}": func(tm *time.Time, calendarSystem string, l *dto.Locale, timeZone string) string {
+                            tz, err := time.LoadLocation(timeZone)
+
+                            if err != nil {
+                                panic(err)
+                            } 
+
+                            t := tm.In(tz)
+
                             // {{$formatter.Pattern }} 
                             return {{$formatter.Func}}
                         },
