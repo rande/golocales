@@ -9,6 +9,9 @@
 package {{.Code}}
 
 import (
+    "time"
+    "fmt"
+
     "github.com/rande/golocales/dto"
     {{ if .Locale.Parent -}}
         "github.com/rande/golocales/locales/{{ .Locale.Parent.Code }}"
@@ -53,6 +56,14 @@ var locale = &dto.Locale{
                             {{- range $labels }}
                                 "{{.}}",
                             {{- end }}
+                        },
+                    {{- end }}
+                },
+                Formatters: map[string]dto.CalendarFormatter{ 
+                    {{- range $key, $formatter := $calendar.Formatters }}
+                        "{{$key}}": func(t *time.Time, calendarSystem string, l *dto.Locale) string {
+                            // {{$formatter.Pattern }} 
+                            return {{$formatter.Func}}
                         },
                     {{- end }}
                 },

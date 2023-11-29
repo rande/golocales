@@ -11,10 +11,16 @@ import (
 	"strings"
 )
 
+type CalendarFormatter struct {
+	Pattern string
+	Func    string
+}
+
 type Calendar struct {
 	// The calendar type
-	System string
-	Labels map[string][]string
+	System     string
+	Labels     map[string][]string
+	Formatters map[string]CalendarFormatter
 }
 
 func AttachCalendars(locale *Locale, cldr *CLDR, ldml *Ldml) {
@@ -26,8 +32,9 @@ func AttachCalendars(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		}
 
 		locale.Calendars[calendar.Type] = &Calendar{
-			System: calendar.Type,
-			Labels: map[string][]string{},
+			System:     calendar.Type,
+			Labels:     map[string][]string{},
+			Formatters: map[string]CalendarFormatter{},
 		}
 	}
 
@@ -84,12 +91,18 @@ func AttachLabels(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 		for _, date := range calendar.DateFormats.DateFormatLength {
 			key := fmt.Sprintf("date_%s", date.Type)
-			locale.Calendars[calendar.Type].Labels[key] = []string{date.DateFormat.Pattern}
+			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+				Pattern: date.DateFormat.Pattern,
+				Func:    ParseDatePattern(date.DateFormat.Pattern),
+			}
 		}
 
 		for _, time := range calendar.TimeFormats.TimeFormatLength {
 			key := fmt.Sprintf("time_%s", time.Type)
-			locale.Calendars[calendar.Type].Labels[key] = []string{time.TimeFormat.Pattern}
+			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+				Pattern: time.TimeFormat.Pattern,
+				Func:    ParseDatePattern(time.TimeFormat.Pattern),
+			}
 		}
 	}
 }
@@ -141,71 +154,71 @@ func GetPattern(pattern string) (string, string) {
 
 	switch pattern {
 	case "yyyy":
-		return "%s", "string(time.Year())"
+		return "%s", "string(t.Year())"
 	case "YYYY":
-		return "%s", "string(time.Year())"
+		return "%s", "string(t.Year())"
 	case "yyy":
-		return "%03d", "time.Year()"
+		return "%03d", "t.Year()"
 	case "YYY":
-		return "%03d", "time.Year()"
+		return "%03d", "t.Year()"
 	case "yy":
-		return "%02d", "time.Year()"
+		return "%02d", "t.Year()"
 	case "YY":
-		return "%02d", "time.Year()"
+		return "%02d", "t.Year()"
 	case "y":
-		return "%d", "time.Year()"
+		return "%d", "t.Year()"
 	case "Y":
-		return "%d", "time.Year()"
+		return "%d", "t.Year()"
 	case "MMMM":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"m_format_wide\"][time.Month()-1]"
+		return "%s", "l.GetCalendarLabels(calendarSystem, \"m_format_wide\")[t.Month()-1]"
 	case "MMM":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"m_format_abbreviated\"][time.Month()-1]"
+		return "%s", "l.GetCalendarLabels(calendarSystem, \"m_format_abbreviated\")[t.Month()-1]"
 	case "MM":
-		return "%02d", "time.Month()"
+		return "%02d", "t.Month()"
 	case "M":
-		return "%d", "time.Month()"
+		return "%d", "t.Month()"
 	case "d":
-		return "%d", "time.Day()"
+		return "%d", "t.Day()"
 	case "dd":
-		return "%02d", "time.Day()"
+		return "%02d", "t.Day()"
 	case "D":
-		return "%d", "time.YearDay()"
+		return "%d", "t.YearDay()"
 	case "DD":
-		return "%02d", "time.YearDay()"
+		return "%02d", "t.YearDay()"
 	case "DDD":
-		return "%03d", "time.YearDay()"
+		return "%03d", "t.YearDay()"
 	case "EEEE":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_wide\"][time.Weekday()]"
+		fallthrough
 	case "eeee":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_wide\"][time.Weekday()]"
+		return "%s", "l.GetCalendarLabels(calendarSystem, \"d_format_wide\")[t.Weekday()]"
 	case "E":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_abbreviated\"][time.Weekday()]"
+		fallthrough
 	case "EE":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_abbreviated\"][time.Weekday()]"
+		fallthrough
 	case "EEE":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_abbreviated\"][time.Weekday()]"
+		fallthrough
 	case "eee":
-		return "%s", "locale.Calendars[\"gregorian\"].Labels[\"d_format_abbreviated\"][time.Weekday()]"
+		return "%s", "l.GetCalendarLabels(calendarSystem, \"d_format_abbreviated\")[t.Weekday()]"
 	case "e":
-		return "%d", "time.Weekday()"
+		return "%d", "t.Weekday()"
 	case "ee":
-		return "%02d", "time.Weekday()"
+		return "%02d", "t.Weekday()"
 	case "h":
-		return "%d", "time.Hour()%12"
+		return "%d", "t.Hour()%12"
 	case "hh":
-		return "%02d", "time.Hour()%12"
+		return "%02d", "t.Hour()%12"
 	case "H":
-		return "%d", "time.Hour()"
+		return "%d", "t.Hour()"
 	case "HH":
-		return "%02d", "time.Hour()"
+		return "%02d", "t.Hour()"
 	case "m":
-		return "%d", "time.Minute()"
+		return "%d", "t.Minute()"
 	case "mm":
-		return "%02d", "time.Minute()"
+		return "%02d", "t.Minute()"
 	case "s":
-		return "%d", "time.Second()"
+		return "%d", "t.Second()"
 	case "ss":
-		return "%02d", "time.Second()"
+		return "%02d", "t.Second()"
 	}
 
 	return pattern, ""

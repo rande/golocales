@@ -14,6 +14,14 @@ type TimeZone struct {
 	City string
 }
 
+type TimeFormat struct {
+	Hour           string
+	Gmt            string
+	GmtZero        string
+	RegionDaylight string
+	RegionStandard string
+}
+
 var TimezoneDenyList = map[string]bool{
 	// Exceptional reservations
 	"Etc/UTC":     true,
@@ -23,6 +31,28 @@ var TimezoneDenyList = map[string]bool{
 	"EST5EDT":     true,
 	"MST7MDT":     true,
 	"PST8PDT":     true,
+}
+
+func AttachTimeFormat(locale *Locale, cldr *CLDR, ldml *Ldml) {
+	timeFormats := &TimeFormat{
+		Hour:           ldml.Dates.TimeZoneNames.HourFormat,
+		Gmt:            ldml.Dates.TimeZoneNames.GmtFormat,
+		GmtZero:        ldml.Dates.TimeZoneNames.GmtZeroFormat,
+		RegionDaylight: "",
+		RegionStandard: "",
+	}
+
+	for _, t := range ldml.Dates.TimeZoneNames.RegionFormat {
+		if t.Type == "daylight" {
+			timeFormats.RegionDaylight = t.Text
+		}
+
+		if t.Type == "standard" {
+			timeFormats.RegionStandard = t.Text
+		}
+	}
+
+	locale.TimeFormat = timeFormats
 }
 
 // This implementation is wrong
@@ -36,7 +66,6 @@ func AttachTimeZones(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	var timezones map[string]*TimeZone = map[string]*TimeZone{}
 
 	for _, t := range cldr.MetaZones {
-
 		if _, ok := TimezoneDenyList[t.Type]; ok {
 			continue
 		}

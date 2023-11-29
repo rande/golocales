@@ -5,6 +5,8 @@
 
 package dto
 
+import "time"
+
 type Territory struct {
 	Code    string
 	Name    string
@@ -22,9 +24,12 @@ type Currency struct {
 	Numeric      string
 }
 
+type CalendarFormatter func(t *time.Time, calendarSystem string, l *Locale) string
+
 type Calendar struct {
-	System string
-	Labels map[string][]string
+	System     string
+	Labels     map[string][]string
+	Formatters map[string]CalendarFormatter
 }
 
 type Number struct {
@@ -117,6 +122,22 @@ func (locale *Locale) GetCurrencyFormats(system, name string) []*NumberFormat {
 
 	if locale.Parent != nil {
 		locale.Parent.GetCurrencyFormats(system, name)
+	}
+
+	return nil
+}
+
+func (locale *Locale) GetCalendarLabels(system, name string) []string {
+	if calendar, ok := locale.Calendars[system]; ok {
+		if labels, ok := calendar.Labels[name]; ok {
+			if len(labels) > 0 {
+				return labels
+			}
+		}
+	}
+
+	if locale.Parent != nil {
+		return locale.Parent.GetCalendarLabels(system, name)
 	}
 
 	return nil

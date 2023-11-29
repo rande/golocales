@@ -32,6 +32,7 @@ type Locale struct {
 	Keys            map[string]string
 	Annotations     []*Annotation
 	Calendars       map[string]*Calendar
+	TimeFormat      *TimeFormat
 }
 
 func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
@@ -68,6 +69,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 	AttachCurrencies(locale, cldr, ldml)
 	AttachTerritories(locale, cldr, ldml)
 	AttachTimeZones(locale, cldr, ldml)
+	AttachTimeFormat(locale, cldr, ldml)
 	AttachNumber(locale, cldr, ldml)
 	AttachCalendars(locale, cldr, ldml)
 
