@@ -39,7 +39,7 @@ var localDigits = map[string]string{
 }
 
 // Formatter formats and parses currency amounts.
-type Formatter struct {
+type AmountFormatter struct {
 	locale  *dto.Locale
 	formats map[string]*dto.NumberFormat
 	symbol  *dto.Symbol
@@ -67,9 +67,9 @@ type Formatter struct {
 	SymbolMap map[string]string
 }
 
-// NewFormatter creates a new formatter for the given locale.
-func NewFormatter(locale *dto.Locale) *Formatter {
-	// load correct formatter
+// NewAmountFormatter creates a new AmountFormatter for the given locale.
+func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
+	// load correct AmountFormatter
 
 	cFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_standard")
 	dFormats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
@@ -82,7 +82,7 @@ func NewFormatter(locale *dto.Locale) *Formatter {
 		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
 	}
 
-	f := &Formatter{
+	f := &AmountFormatter{
 		locale: locale,
 		symbol: locale.GetSymbol(locale.Number.DefaultNumberSystem),
 		formats: map[string]*dto.NumberFormat{
@@ -100,12 +100,12 @@ func NewFormatter(locale *dto.Locale) *Formatter {
 }
 
 // Locale returns the locale.
-func (f *Formatter) Locale() *dto.Locale {
+func (f *AmountFormatter) Locale() *dto.Locale {
 	return f.locale
 }
 
 // Format formats a currency amount.
-func (f *Formatter) Format(amount Amount) string {
+func (f *AmountFormatter) Format(amount Amount) string {
 	pattern := ""
 	if amount.IsCurrency() {
 		pattern = f.formats["currency"].StandardPattern
@@ -166,7 +166,7 @@ func (f *Formatter) Format(amount Amount) string {
 }
 
 // // Parse parses a formatted amount.
-// func (f *Formatter) Parse(s, currencyCode string) (Amount, error) {
+// func (f *AmountFormatter) Parse(s, currencyCode string) (Amount, error) {
 // 	symbol, _ := GetSymbol(currencyCode, f.locale)
 // 	replacements := []string{
 // 		f.format.decimalSeparator, ".",
@@ -196,7 +196,7 @@ func (f *Formatter) Format(amount Amount) string {
 // }
 
 // // getPattern returns a positive or negative pattern for a currency amount.
-// func (f *Formatter) getPattern(amount Amount) string {
+// func (f *AmountFormatter) getPattern(amount Amount) string {
 // 	var patterns []string
 // 	if f.usesAccountingPattern() {
 // 		patterns = strings.Split(f.format.accountingPattern, ";")
@@ -220,13 +220,13 @@ func (f *Formatter) Format(amount Amount) string {
 // 	}
 // }
 
-// // usesAccountingPattern returns whether the formatter needs to use the accounting pattern.
-// func (f *Formatter) usesAccountingPattern() bool {
+// // usesAccountingPattern returns whether the AmountFormatter needs to use the accounting pattern.
+// func (f *AmountFormatter) usesAccountingPattern() bool {
 // 	return f.AccountingStyle && f.format.accountingPattern != ""
 // }
 
 // formatNumber formats the number for display.
-func (f *Formatter) formatNumber(amount Amount) string {
+func (f *AmountFormatter) formatNumber(amount Amount) string {
 	minDigits := f.minDigits
 	if minDigits == DefaultDigits {
 		minDigits, _ = GetDigits(amount)
@@ -264,7 +264,7 @@ func (f *Formatter) formatNumber(amount Amount) string {
 }
 
 // formatCurrency formats the currency for display.
-func (f *Formatter) formatCurrency(currencyCode string) string {
+func (f *AmountFormatter) formatCurrency(currencyCode string) string {
 	var formatted string
 	switch f.currencyDisplay {
 	case DisplaySymbol:
@@ -283,7 +283,7 @@ func (f *Formatter) formatCurrency(currencyCode string) string {
 }
 
 // groupMajorDigits groups major digits according to the currency format.
-func (f *Formatter) groupMajorDigits(majorDigits string, unit unitSystem) string {
+func (f *AmountFormatter) groupMajorDigits(majorDigits string, unit unitSystem) string {
 
 	var format *dto.NumberFormat
 	if unit == unitEmpty {
@@ -334,7 +334,7 @@ func (f *Formatter) groupMajorDigits(majorDigits string, unit unitSystem) string
 }
 
 // localizeDigits replaces digits with their localized equivalents.
-func (f *Formatter) localizeDigits(number string) string {
+func (f *AmountFormatter) localizeDigits(number string) string {
 	if f.locale.Number.DefaultNumberSystem == "latn" {
 		return number
 	}

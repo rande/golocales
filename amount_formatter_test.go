@@ -19,9 +19,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFormatter_Locale(t *testing.T) {
+func TestAmountFormatter_Locale(t *testing.T) {
 	locale := fr.Locale()
-	formatter := golocales.NewFormatter(locale)
+	formatter := golocales.NewAmountFormatter(locale)
 	got := formatter.Locale().String()
 
 	if got != "fr" {
@@ -29,7 +29,7 @@ func TestFormatter_Locale(t *testing.T) {
 	}
 }
 
-func TestFormatter_Format(t *testing.T) {
+func TestAmountFormatter_Format(t *testing.T) {
 	tests := []struct {
 		number       string
 		currencyCode string
@@ -73,13 +73,13 @@ func TestFormatter_Format(t *testing.T) {
 			amount, err := golocales.NewCurrency(tt.number, tt.currencyCode)
 			assert.NoError(t, err)
 
-			formatter := golocales.NewFormatter(tt.locale)
+			formatter := golocales.NewAmountFormatter(tt.locale)
 			assert.Equal(t, tt.want, formatter.Format(amount))
 		})
 	}
 }
 
-// func TestFormatter_AccountingStyle(t *testing.T) {
+// func TestAmountFormatter_AccountingStyle(t *testing.T) {
 // 	tests := []struct {
 // 		number       string
 // 		currencyCode string
@@ -102,7 +102,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.AccountingStyle = true
 // 			formatter.AddPlusSign = tt.AddPlusSign
 // 			got := formatter.Format(amount)
@@ -113,7 +113,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_PlusSign(t *testing.T) {
+// func TestAmountFormatter_PlusSign(t *testing.T) {
 // 	tests := []struct {
 // 		number       string
 // 		currencyCode string
@@ -135,7 +135,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.AddPlusSign = tt.AddPlusSign
 // 			got := formatter.Format(amount)
 // 			if got != tt.want {
@@ -145,7 +145,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_Grouping(t *testing.T) {
+// func TestAmountFormatter_Grouping(t *testing.T) {
 // 	tests := []struct {
 // 		number       string
 // 		currencyCode string
@@ -178,7 +178,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.NoGrouping = tt.NoGrouping
 // 			got := formatter.Format(amount)
 // 			if got != tt.want {
@@ -188,7 +188,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_Digits(t *testing.T) {
+// func TestAmountFormatter_Digits(t *testing.T) {
 // 	tests := []struct {
 // 		number       string
 // 		currencyCode string
@@ -224,7 +224,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.MinDigits = tt.minDigits
 // 			formatter.MaxDigits = tt.maxDigits
 // 			got := formatter.Format(amount)
@@ -235,7 +235,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_RoundingMode(t *testing.T) {
+// func TestAmountFormatter_RoundingMode(t *testing.T) {
 // 	tests := []struct {
 // 		number       string
 // 		currencyCode string
@@ -264,7 +264,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.MaxDigits = currency.DefaultDigits
 // 			formatter.RoundingMode = tt.roundingMode
 // 			got := formatter.Format(amount)
@@ -275,7 +275,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_CurrencyDisplay(t *testing.T) {
+// func TestAmountFormatter_CurrencyDisplay(t *testing.T) {
 // 	tests := []struct {
 // 		number          string
 // 		currencyCode    string
@@ -306,7 +306,7 @@ func TestFormatter_Format(t *testing.T) {
 // 		t.Run("", func(t *testing.T) {
 // 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			formatter.AccountingStyle = true
 // 			formatter.CurrencyDisplay = tt.currencyDisplay
 // 			got := formatter.Format(amount)
@@ -317,9 +317,9 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_SymbolMap(t *testing.T) {
+// func TestAmountFormatter_SymbolMap(t *testing.T) {
 // 	locale := currency.NewLocale("en")
-// 	formatter := currency.NewFormatter(locale)
+// 	formatter := currency.NewAmountFormatter(locale)
 // 	formatter.SymbolMap["USD"] = "US$"
 // 	formatter.SymbolMap["EUR"] = "EU"
 
@@ -336,7 +336,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	}
 // }
 
-// func TestFormatter_Parse(t *testing.T) {
+// func TestAmountFormatter_Parse(t *testing.T) {
 // 	tests := []struct {
 // 		s            string
 // 		currencyCode string
@@ -376,7 +376,7 @@ func TestFormatter_Format(t *testing.T) {
 // 	for _, tt := range tests {
 // 		t.Run("", func(t *testing.T) {
 // 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewFormatter(locale)
+// 			formatter := currency.NewAmountFormatter(locale)
 // 			// Allow parsing negative amounts formatted using parenthesis.
 // 			formatter.AccountingStyle = true
 // 			got, err := formatter.Parse(tt.s, tt.currencyCode)

@@ -18,12 +18,14 @@ import (
     {{- end -}}
 )
 
-var locale = &dto.Locale{
-    Name: "{{.Code}}",
-    {{- if .Locale.Parent }}
-    Parent: {{ .Locale.Parent.Code }}.Locale(),
-    {{- end }}
-    Territories: map[string]dto.Territory{ // len {{ len .Territories }}
+var l = &dto.Locale{}
+
+func init() {
+    l.Name = "{{.Code}}"
+{{- if .Locale.Parent }}
+    l.Parent = {{ .Locale.Parent.Code }}.Locale()
+{{- end }}
+    l.Territories = map[string]dto.Territory{ // len {{ len .Territories }}
         {{- range .Territories }}
             {{ if $.Locale.IsRoot -}}
                 "{{.Code}}": { Numeric: "{{.Numeric}}", Alpha3: "{{.Alpha3}}"},
@@ -31,8 +33,9 @@ var locale = &dto.Locale{
                 "{{.Code}}": {Code: "{{.Code}}", Name: "{{.Name}}"},
             {{- end }}            
         {{- end }}
-    },
-    Currencies: map[string]*dto.Currency{ // len {{ len .Currencies }}
+    } // end locale.Territories
+
+    l.Currencies = map[string]*dto.Currency{ // len {{ len .Currencies }}
         {{- range .Currencies }}
             {{ if $.Locale.IsRoot -}}
                 "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Digits: {{.Digits}}, Rounding: {{.Rounding}}, CashDigits: {{.CashDigits}}, CashRounding: {{.CashRounding}}, Numeric: "{{.Numeric}}" },
@@ -40,45 +43,15 @@ var locale = &dto.Locale{
                 "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
             {{- end }}
         {{- end }}
-    },
-    TimeZones: map[string]dto.TimeZone{ // len {{ len .TimeZones }}
+    } // end locale.Currencies
+
+    l.TimeZones = map[string]dto.TimeZone{ // len {{ len .TimeZones }}
         {{- range .TimeZones }}
             "{{.Code}}": "{{.Name}}",
         {{- end }}
-    },
-    Calendars: map[string]*dto.Calendar{ // len {{ len .Locale.Calendars }}
-        {{- range $type, $calendar := .Locale.Calendars }}
-            "{{.System}}": &dto.Calendar{
-                System: "{{.System}}",
-                Labels: map[string][]string{ // len {{ len .Labels }}
-                    {{- range $key, $labels := .Labels }}
-                        "{{$key}}": []string{ // len {{ len $labels }}
-                            {{- range $labels }}
-                                "{{.}}",
-                            {{- end }}
-                        },
-                    {{- end }}
-                },
-                Formatters: map[string]dto.CalendarFormatter{ 
-                    {{- range $key, $formatter := $calendar.Formatters }}
-                        "{{$key}}": func(tm *time.Time, calendarSystem string, l *dto.Locale, timeZone string) string {
-                            tz, err := time.LoadLocation(timeZone)
+    } // end locale.TimeZones
 
-                            if err != nil {
-                                panic(err)
-                            } 
-
-                            t := tm.In(tz)
-
-                            // {{$formatter.Pattern }} 
-                            return {{$formatter.Func}}
-                        },
-                    {{- end }}
-                },
-            },
-        {{- end }}
-    },
-    Number: &dto.Number{
+    l.Number = &dto.Number{
         Symbols: map[string]*dto.Symbol{ // len {{ len .Locale.Number.Symbols }}
             {{ range .Locale.Number.Symbols }}
                 "{{.System}}": {
@@ -113,7 +86,7 @@ var locale = &dto.Locale{
                     {{ end }}
                 },
             {{- end -}}
-        },
+        }, // end locale.Number.Decimals
 {{- end }}
 {{ if .Locale.Number.Currencies }}
         Currencies: map[string]dto.FormatGroup{
@@ -129,11 +102,44 @@ var locale = &dto.Locale{
                     {{ end }}
                 },
             {{- end -}}
+        }, // end locale.Number.Currencies
+{{- end }}
+    } // end locale.Number
+
+    l.Calendars = map[string]*dto.Calendar{ // len {{ len .Locale.Calendars }}
+{{- range $type, $calendar := .Locale.Calendars }}
+        "{{.System}}": &dto.Calendar{
+            System: "{{.System}}",
+            Labels: map[string][]string{ // len {{ len .Labels }}
+                {{- range $key, $labels := .Labels }}
+                    "{{$key}}": []string{ // len {{ len $labels }}
+                        {{- range $labels }}
+                            "{{.}}",
+                        {{- end }}
+                    },
+                {{- end }}
+            },
+            Formatters: map[string]dto.CalendarFormatter{ 
+                {{- range $key, $formatter := $calendar.Formatters }}
+                    "{{$key}}": func(tm time.Time, calendarSystem string, timeZone string) string {
+                        tz, err := time.LoadLocation(timeZone)
+
+                        if err != nil {
+                            panic(err)
+                        } 
+
+                        t := tm.In(tz)
+
+                        // {{$formatter.Pattern }} 
+                        return {{$formatter.Func}}
+                    },
+                {{- end }}
+            },
         },
 {{- end }}
-    },
-}
+    } // end locale.Calendars
+} // end init
 
 func Locale() *dto.Locale {
-    return locale
+    return l
 }
