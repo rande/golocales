@@ -121,7 +121,7 @@ func init() {
             },
             Formatters: map[string]dto.CalendarFormatter{ 
                 {{- range $key, $formatter := $calendar.Formatters }}
-                    "{{$key}}": func(tm time.Time, calendarSystem string, timeZone string) string {
+                    "{{$key}}": func(tm time.Time, timeZone string) string {
                         tz, err := time.LoadLocation(timeZone)
 
                         if err != nil {

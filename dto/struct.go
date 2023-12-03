@@ -24,7 +24,7 @@ type Currency struct {
 	Numeric      string
 }
 
-type CalendarFormatter func(t time.Time, calendarSystem string, timeZone string) string
+type CalendarFormatter func(t time.Time, timeZone string) string
 
 type Calendar struct {
 	System     string

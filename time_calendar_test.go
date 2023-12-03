@@ -22,6 +22,6 @@ func Test_Time_Format(t *testing.T) {
 	formatter_fr := l_fr.Calendars["gregorian"].Formatters["date_short"]
 	formatter_en := l_en.Calendars["gregorian"].Formatters["date_short"]
 
-	assert.Equal(t, "30/01/2015", formatter_fr(tm, "gregorian", "Europe/Paris"))
-	assert.Equal(t, "1/30/2015", formatter_en(tm, "gregorian", "Europe/Paris"))
+	assert.Equal(t, "30/01/2015", formatter_fr(tm, "Europe/Paris"))
+	assert.Equal(t, "1/30/2015", formatter_en(tm, "Europe/Paris"))
 }

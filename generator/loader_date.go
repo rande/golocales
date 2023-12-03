@@ -90,17 +90,23 @@ func AttachLabels(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 		for _, date := range calendar.DateFormats.DateFormatLength {
 			key := fmt.Sprintf("date_%s", date.Type)
+			pattern := ParseDatePattern(date.DateFormat.Pattern)
+			pattern = strings.Replace(pattern, "calendarSystem", calendar.Type, -1)
+
 			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
 				Pattern: date.DateFormat.Pattern,
-				Func:    ParseDatePattern(date.DateFormat.Pattern),
+				Func:    pattern,
 			}
 		}
 
 		for _, time := range calendar.TimeFormats.TimeFormatLength {
 			key := fmt.Sprintf("time_%s", time.Type)
+			pattern := ParseDatePattern(time.TimeFormat.Pattern)
+			pattern = strings.Replace(pattern, "calendarSystem", calendar.Type, -1)
+
 			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
 				Pattern: time.TimeFormat.Pattern,
-				Func:    ParseDatePattern(time.TimeFormat.Pattern),
+				Func:    pattern,
 			}
 		}
 	}
@@ -169,9 +175,9 @@ func GetPattern(pattern string) (string, string) {
 	case "Y":
 		return "%d", "t.Year()"
 	case "MMMM":
-		return "%s", "l.GetCalendarLabels(calendarSystem, \"m_format_wide\")[t.Month()-1]"
+		return "%s", "l.GetCalendarLabels(\"calendarSystem\", \"m_format_wide\")[t.Month()-1]"
 	case "MMM":
-		return "%s", "l.GetCalendarLabels(calendarSystem, \"m_format_abbreviated\")[t.Month()-1]"
+		return "%s", "l.GetCalendarLabels(\"calendarSystem\", \"m_format_abbreviated\")[t.Month()-1]"
 	case "MM":
 		return "%02d", "t.Month()"
 	case "M":
@@ -189,7 +195,7 @@ func GetPattern(pattern string) (string, string) {
 	case "EEEE":
 		fallthrough
 	case "eeee":
-		return "%s", "l.GetCalendarLabels(calendarSystem, \"d_format_wide\")[t.Weekday()]"
+		return "%s", "l.GetCalendarLabels(\"calendarSystem\", \"d_format_wide\")[t.Weekday()]"
 	case "E":
 		fallthrough
 	case "EE":
@@ -197,7 +203,7 @@ func GetPattern(pattern string) (string, string) {
 	case "EEE":
 		fallthrough
 	case "eee":
-		return "%s", "l.GetCalendarLabels(calendarSystem, \"d_format_abbreviated\")[t.Weekday()]"
+		return "%s", "l.GetCalendarLabels(\"calendarSystem\", \"d_format_abbreviated\")[t.Weekday()]"
 	case "e":
 		return "%d", "t.Weekday()"
 	case "ee":
