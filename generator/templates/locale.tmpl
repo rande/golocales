@@ -13,6 +13,7 @@ import (
     "fmt"
 
     "github.com/rande/golocales/dto"
+    . "github.com/rande/golocales/locales"
     {{ if .Locale.Parent -}}
         "github.com/rande/golocales/locales/{{ .Locale.Parent.Code }}"
     {{- end -}}
@@ -47,7 +48,7 @@ func init() {
 
     l.TimeZones = map[string]dto.TimeZone{ // len {{ len .TimeZones }}
         {{- range .TimeZones }}
-            "{{.Code}}": "{{.Name}}",
+            {{.Const}}: "{{.Name}}",
         {{- end }}
     } // end locale.TimeZones
 

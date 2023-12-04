@@ -37,7 +37,8 @@ func main() {
 	fmt.Printf("\nLoading root locale\n")
 	cldr.RootLocale = LoadLocaleFromFile(CldrPath+"/main/root.xml", cldr)
 
-	WriteModule(LocalePath, cldr.RootLocale)
+	WriteTimezonesGo(LocalePath, cldr.RootLocale)
+	WriteLocale(LocalePath, cldr.RootLocale)
 
 	list := []string{"en.xml", "fr.xml", "fr_CA.xml", "sr.xml"}
 
@@ -70,7 +71,7 @@ func main() {
 			if _, err := os.Stat(langModulePath); os.IsNotExist(err) {
 				locale := LoadLocaleFromFile(CldrPath+"/main/"+langCode+".xml", cldr)
 				fmt.Printf("> Generate file base module %s\n", locale.Code)
-				WriteModule(LocalePath, locale)
+				WriteLocale(LocalePath, locale)
 
 				cldr.Locales[locale.Code] = locale
 			}
@@ -80,7 +81,7 @@ func main() {
 		cldr.Locales[locale.Code] = locale
 
 		fmt.Printf("> Generate file module %s\n", locale.Code)
-		WriteModule(LocalePath, locale)
+		WriteLocale(LocalePath, locale)
 
 		return nil
 	})

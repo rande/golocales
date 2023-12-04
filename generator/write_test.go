@@ -19,7 +19,7 @@ func Test_Write_Ldml(t *testing.T) {
 
 	buffer := bytes.NewBuffer([]byte{})
 
-	err = WriteGo(locale, buffer)
+	err = WriteLocaleGo(locale, buffer)
 
 	if err != nil {
 		fmt.Printf("%s\n", err.Error())

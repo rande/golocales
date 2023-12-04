@@ -8,7 +8,7 @@ import (
 	"text/template"
 )
 
-func WriteModule(localePath string, locale *Locale) {
+func WriteLocale(localePath string, locale *Locale) {
 	path := localePath + "/" + locale.Code
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
@@ -19,10 +19,12 @@ func WriteModule(localePath string, locale *Locale) {
 
 	localeFilepath := path + "/" + locale.Code + ".go"
 
-	if fs, err := os.Create(localeFilepath); err != nil {
+	if f, err := os.Create(localeFilepath); err != nil {
 		log.Panic(err)
 	} else {
-		if err := WriteGo(locale, fs); err != nil {
+		defer f.Close()
+
+		if err := WriteLocaleGo(locale, f); err != nil {
 			log.Panic(err)
 		}
 	}
@@ -38,10 +40,10 @@ func WriteModule(localePath string, locale *Locale) {
 	}
 }
 
-func WriteGo(locale *Locale, w io.Writer) error {
+func WriteLocaleGo(locale *Locale, w io.Writer) error {
 	fs := GetEmbedFS()
 
-	tpl := template.Must(template.ParseFS(fs, "templates/data.tmpl"))
+	tpl := template.Must(template.ParseFS(fs, "templates/locale.tmpl"))
 
 	ctx := map[string]interface{}{
 		"Locale":      locale,
@@ -52,4 +54,26 @@ func WriteGo(locale *Locale, w io.Writer) error {
 	}
 
 	return tpl.Execute(w, ctx)
+}
+
+func WriteTimezonesGo(basePath string, locale *Locale) error {
+	fs := GetEmbedFS()
+
+	var f *os.File
+	var err error
+
+	if f, err = os.Create(basePath + "/timezones.go"); err != nil {
+		log.Panic(err)
+	}
+
+	defer f.Close()
+
+	tpl := template.Must(template.ParseFS(fs, "templates/timezones.tmpl"))
+
+	ctx := map[string]interface{}{
+		"Locale": locale,
+	}
+
+	return tpl.Execute(f, ctx)
+
 }

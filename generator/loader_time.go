@@ -5,13 +5,17 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type TimeZone struct {
-	Code string
-	Name string
-	Zone string
-	City string
+	Code  string
+	Name  string
+	Zone  string
+	City  string
+	Const string
 }
 
 type TimeFormat struct {
@@ -65,14 +69,17 @@ func AttachTimeFormat(locale *Locale, cldr *CLDR, ldml *Ldml) {
 func AttachTimeZones(locale *Locale, cldr *CLDR, ldml *Ldml) {
 	var timezones map[string]*TimeZone = map[string]*TimeZone{}
 
+	var replacer = strings.NewReplacer("/", "_", "-", "_")
+
 	for _, t := range cldr.MetaZones {
 		if _, ok := TimezoneDenyList[t.Type]; ok {
 			continue
 		}
 
 		timezones[t.Type] = &TimeZone{
-			Code: t.Type,
-			Zone: t.Zone,
+			Code:  t.Type,
+			Zone:  t.Zone,
+			Const: "Tz_" + replacer.Replace(t.Type),
 		}
 	}
 
