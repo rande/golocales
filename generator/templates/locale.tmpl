@@ -41,7 +41,7 @@ func init() {
             {{ if $.Locale.IsRoot -}}
                 {{.Const}}: {Symbol: "{{.Symbol}}", Digits: {{.Digits}}, Rounding: {{.Rounding}}, CashDigits: {{.CashDigits}}, CashRounding: {{.CashRounding}}, Numeric: "{{.Numeric}}" },
             {{- else -}}
-                {{.Const}}: {Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
+                {{.Const}}: { {{ if .Symbol }}Symbol: "{{.Symbol}}",{{ end }} Name: "{{.Name}}"},
             {{- end }}
         {{- end }}
     } // end locale.Currencies
