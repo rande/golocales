@@ -15,8 +15,8 @@ import (
 )
 
 func Test_Time_Format(t *testing.T) {
-	l_fr := fr.Locale()
-	l_en := en.Locale()
+	l_fr := fr.GetLocale()
+	l_en := en.GetLocale()
 	tm := time.Date(2015, 1, 30, 0, 0, 0, 0, time.UTC)
 
 	formatter_fr := l_fr.Calendars["gregorian"].Formatters["date_short"]

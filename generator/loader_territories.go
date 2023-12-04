@@ -18,6 +18,7 @@ type Territory struct {
 	Alt     string
 	Numeric string
 	Alpha3  string
+	Const   string
 }
 
 var TerritoriesDenyList = map[string]bool{
@@ -80,7 +81,6 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 	if locale.IsRoot {
 		for _, t := range cldr.Territories {
-
 			if _, ok := TerritoriesDenyList[t.Code]; ok {
 				continue
 			}
@@ -94,6 +94,7 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			}
 
 			locale.Territories[t.Code] = t
+			locale.Territories[t.Code].Const = fmt.Sprintf("Region_%s", strings.ToUpper(t.Code))
 		}
 
 		return
@@ -131,6 +132,7 @@ func AttachTerritories(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			Alt:     t.Alt,
 			Alpha3:  cldr.RootLocale.Territories[t.Type].Alpha3,
 			Numeric: cldr.RootLocale.Territories[t.Type].Numeric,
+			Const:   fmt.Sprintf("Region_%s", strings.ToUpper(t.Type)),
 		}
 	}
 

@@ -12,48 +12,48 @@ import (
     "time"
     "fmt"
 
-    "github.com/rande/golocales/dto"
+    . "github.com/rande/golocales/dto"
     . "github.com/rande/golocales/locales"
     {{ if .Locale.Parent -}}
         "github.com/rande/golocales/locales/{{ .Locale.Parent.Code }}"
     {{- end -}}
 )
 
-var l = &dto.Locale{}
+var l = &Locale{}
 
 func init() {
     l.Name = "{{.Code}}"
 {{- if .Locale.Parent }}
-    l.Parent = {{ .Locale.Parent.Code }}.Locale()
+    l.Parent = {{ .Locale.Parent.Code }}.GetLocale()
 {{- end }}
-    l.Territories = map[string]dto.Territory{ // len {{ len .Territories }}
+    l.Territories = map[string]*Territory{ // len {{ len .Territories }}
         {{- range .Territories }}
             {{ if $.Locale.IsRoot -}}
-                "{{.Code}}": { Numeric: "{{.Numeric}}", Alpha3: "{{.Alpha3}}"},
+                {{.Const}}: { Numeric: "{{.Numeric}}", Alpha3: "{{.Alpha3}}"},
             {{- else -}}
-                "{{.Code}}": {Code: "{{.Code}}", Name: "{{.Name}}"},
+                {{.Const}}: { Name: "{{.Name}}"},
             {{- end }}            
         {{- end }}
     } // end locale.Territories
 
-    l.Currencies = map[string]*dto.Currency{ // len {{ len .Currencies }}
+    l.Currencies = map[string]*Currency{ // len {{ len .Currencies }}
         {{- range .Currencies }}
             {{ if $.Locale.IsRoot -}}
-                "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Digits: {{.Digits}}, Rounding: {{.Rounding}}, CashDigits: {{.CashDigits}}, CashRounding: {{.CashRounding}}, Numeric: "{{.Numeric}}" },
+                {{.Const}}: {Symbol: "{{.Symbol}}", Digits: {{.Digits}}, Rounding: {{.Rounding}}, CashDigits: {{.CashDigits}}, CashRounding: {{.CashRounding}}, Numeric: "{{.Numeric}}" },
             {{- else -}}
-                "{{.Code}}": &dto.Currency{Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
+                {{.Const}}: {Symbol: "{{.Symbol}}", Name: "{{.Name}}"},
             {{- end }}
         {{- end }}
     } // end locale.Currencies
 
-    l.TimeZones = map[string]dto.TimeZone{ // len {{ len .TimeZones }}
+    l.TimeZones = map[string]TimeZone{ // len {{ len .TimeZones }}
         {{- range .TimeZones }}
             {{.Const}}: "{{.Name}}",
         {{- end }}
     } // end locale.TimeZones
 
-    l.Number = &dto.Number{
-        Symbols: map[string]*dto.Symbol{ // len {{ len .Locale.Number.Symbols }}
+    l.Number = &Number{
+        Symbols: map[string]*Symbol{ // len {{ len .Locale.Number.Symbols }}
             {{ range .Locale.Number.Symbols }}
                 "{{.System}}": {
                     System:"{{.System}}",
@@ -74,12 +74,12 @@ func init() {
         MinimumGroupingDigits: {{ .Locale.Number.MinimumGroupingDigits }},
         DefaultNumberSystem: "{{ .Locale.Number.DefaultNumberSystem }}",
 {{ if .Locale.Number.Decimals }}
-        Decimals: map[string]dto.FormatGroup{
+        Decimals: map[string]FormatGroup{
             {{- range $numberingSystem, $group := .Locale.Number.Decimals }}
                 // key is the numbering system
-                "{{$numberingSystem}}": dto.FormatGroup{
+                "{{$numberingSystem}}": {
                     {{- range $type, $pattern := $group }}
-                        "{{ $type }}": []*dto.NumberFormat{ // len {{ len $pattern }}
+                        "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
                                     {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
@@ -90,12 +90,12 @@ func init() {
         }, // end locale.Number.Decimals
 {{- end }}
 {{ if .Locale.Number.Currencies }}
-        Currencies: map[string]dto.FormatGroup{
+        Currencies: map[string]FormatGroup{
             {{- range $numberingSystem, $group := .Locale.Number.Currencies }}
                 // key is the numbering system
-                "{{$numberingSystem}}": dto.FormatGroup{
+                "{{$numberingSystem}}": {
                     {{- range $type, $pattern := $group }}
-                        "{{ $type }}": []*dto.NumberFormat{ // len {{ len $pattern }}
+                        "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
                                     {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
@@ -107,9 +107,9 @@ func init() {
 {{- end }}
     } // end locale.Number
 
-    l.Calendars = map[string]*dto.Calendar{ // len {{ len .Locale.Calendars }}
+    l.Calendars = map[string]*Calendar{ // len {{ len .Locale.Calendars }}
 {{- range $type, $calendar := .Locale.Calendars }}
-        "{{.System}}": &dto.Calendar{
+        "{{.System}}": {
             System: "{{.System}}",
             Labels: map[string][]string{ // len {{ len .Labels }}
                 {{- range $key, $labels := .Labels }}
@@ -120,7 +120,7 @@ func init() {
                     },
                 {{- end }}
             },
-            Formatters: map[string]dto.CalendarFormatter{ 
+            Formatters: map[string]CalendarFormatter{ 
                 {{- range $key, $formatter := $calendar.Formatters }}
                     "{{$key}}": func(tm time.Time, timeZone string) string {
                         tz, err := time.LoadLocation(timeZone)
@@ -141,6 +141,6 @@ func init() {
     } // end locale.Calendars
 } // end init
 
-func Locale() *dto.Locale {
+func GetLocale() *Locale {
     return l
 }

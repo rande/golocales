@@ -39,7 +39,7 @@ func IsValid(currencyCode string) bool {
 		return true
 	}
 
-	_, ok := root.Locale().Currencies[currencyCode]
+	_, ok := root.GetLocale().Currencies[currencyCode]
 
 	return ok
 }
@@ -49,7 +49,7 @@ func GetNumericCode(currencyCode string) (numericCode string, ok bool) {
 	if currencyCode == "" || !IsValid(currencyCode) {
 		return "000", false
 	}
-	return root.Locale().Currencies[currencyCode].Numeric, true
+	return root.GetLocale().Currencies[currencyCode].Numeric, true
 }
 
 // GetDigits returns the number of fraction digits for a currency code.
@@ -57,7 +57,7 @@ func GetCurrencyDigits(currencyCode string) (digits uint8, ok bool) {
 	if currencyCode == "" || !IsValid(currencyCode) {
 		return 0, false
 	}
-	return root.Locale().Currencies[currencyCode].Digits, true
+	return root.GetLocale().Currencies[currencyCode].Digits, true
 }
 
 func GetDigits(amount Amount) (digits uint8, ok bool) {

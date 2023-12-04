@@ -20,6 +20,7 @@ type Currency struct {
 	CashDigits   string
 	CashRounding string
 	Numeric      string
+	Const        string
 }
 
 func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
@@ -40,6 +41,7 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			}
 
 			currencies[code] = c
+			currencies[code].Const = fmt.Sprintf("Currency_%s", strings.ToUpper(code))
 		}
 	}
 
@@ -80,6 +82,7 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			CashDigits:   ifEmptyString(cldr.Currencies[t.Type].CashDigits, "0"),
 			CashRounding: ifEmptyString(cldr.Currencies[t.Type].CashRounding, "0"),
 			Numeric:      ifEmptyString(cldr.Currencies[t.Type].Numeric, "000"),
+			Const:        fmt.Sprintf("Currency_%s", strings.ToUpper(t.Type)),
 		}
 	}
 

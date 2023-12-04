@@ -20,9 +20,9 @@ import (
 )
 
 func TestAmountFormatter_Locale(t *testing.T) {
-	locale := fr.Locale()
+	locale := fr.GetLocale()
 	formatter := golocales.NewAmountFormatter(locale)
-	got := formatter.Locale().String()
+	got := formatter.GetLocale().String()
 
 	if got != "fr" {
 		t.Errorf("got %v, want fr", got)
@@ -40,21 +40,21 @@ func TestAmountFormatter_Format(t *testing.T) {
 		// {"1234.59", "USD", "en-US", "$1,234.59"},
 		// {"1234.59", "USD", "en-CA", "US$1,234.59"},
 		// {"1234.59", "USD", "de-CH", "$\u00a01’234.59"},
-		{"1234.59", "USD", "sr", "1.234,59\u00a0US$", sr.Locale()},
+		{"1234.59", "USD", "sr", "1.234,59\u00a0US$", sr.GetLocale()},
 
 		// {"-1234.59", "USD", "en-US", "-$1,234.59"},
 		// {"-1234.59", "USD", "en-CA", "-US$1,234.59"},
 		// {"-1234.59", "USD", "de-CH", "$-1’234.59"},
-		{"-1234.59", "USD", "sr", "-1.234,59\u00a0US$", sr.Locale()},
+		{"-1234.59", "USD", "sr", "-1.234,59\u00a0US$", sr.GetLocale()},
 
-		{"1234.00", "EUR", "en", "€1,234.00", en.Locale()},
-		{"-1234.00", "EUR", "en", "€-1,234.00", en.Locale()},
+		{"1234.00", "EUR", "en", "€1,234.00", en.GetLocale()},
+		{"-1234.00", "EUR", "en", "€-1,234.00", en.GetLocale()},
 		// {"1234.00", "EUR", "de-CH", "€\u00a01’234.00"},
 		// {"1234.00", "EUR", "sr", "1.234,00\u00a0€"},
 
-		{"1234.00", "CHF", "en", "CHF\u00a01,234.00", en.Locale()},
+		{"1234.00", "CHF", "en", "CHF\u00a01,234.00", en.GetLocale()},
 		// {"1234.00", "CHF", "de-CH", "CHF\u00a01’234.00"},
-		{"1234.00", "CHF", "sr", "1.234,00\u00a0CHF", sr.Locale()},
+		{"1234.00", "CHF", "sr", "1.234,00\u00a0CHF", sr.GetLocale()},
 
 		// Arabic digits.
 		// {"12345678.90", "USD", "ar", "\u200f١٢٬٣٤٥٬٦٧٨٫٩٠\u00a0US$"},

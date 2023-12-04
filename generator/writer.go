@@ -8,6 +8,18 @@ import (
 	"text/template"
 )
 
+func FormatCode(path string) {
+	cmd := exec.Command("goimports", "-w", path)
+	if err := cmd.Run(); err != nil {
+		log.Panic("failed execute \"goimports\" for file ", path, ": ", err)
+	}
+
+	cmd = exec.Command("gofmt", "-s", "-w", path)
+	if err := cmd.Run(); err != nil {
+		log.Panic("failed execute \"gofmt\" for file ", path, ": ", err)
+	}
+}
+
 func WriteLocale(localePath string, locale *Locale) {
 	path := localePath + "/" + locale.Code
 
@@ -29,15 +41,7 @@ func WriteLocale(localePath string, locale *Locale) {
 		}
 	}
 
-	cmd := exec.Command("goimports", "-w", localeFilepath)
-	if err := cmd.Run(); err != nil {
-		log.Panic("failed execute \"goimports\" for file ", localeFilepath, ": ", err)
-	}
-
-	cmd = exec.Command("gofmt", "-s", "-w", localeFilepath)
-	if err := cmd.Run(); err != nil {
-		log.Panic("failed execute \"gofmt\" for file ", localeFilepath, ": ", err)
-	}
+	FormatCode(localeFilepath)
 }
 
 func WriteLocaleGo(locale *Locale, w io.Writer) error {
@@ -56,24 +60,29 @@ func WriteLocaleGo(locale *Locale, w io.Writer) error {
 	return tpl.Execute(w, ctx)
 }
 
-func WriteTimezonesGo(basePath string, locale *Locale) error {
+func WriteGo(filename, basePath string, locale *Locale) error {
 	fs := GetEmbedFS()
 
 	var f *os.File
 	var err error
 
-	if f, err = os.Create(basePath + "/timezones.go"); err != nil {
+	basePath = basePath + "/" + filename + ".go"
+
+	if f, err = os.Create(basePath); err != nil {
 		log.Panic(err)
 	}
 
 	defer f.Close()
 
-	tpl := template.Must(template.ParseFS(fs, "templates/timezones.tmpl"))
+	tpl := template.Must(template.ParseFS(fs, "templates/"+filename+".tmpl"))
 
 	ctx := map[string]interface{}{
 		"Locale": locale,
 	}
 
-	return tpl.Execute(f, ctx)
+	tpl.Execute(f, ctx)
 
+	FormatCode(basePath)
+
+	return nil
 }

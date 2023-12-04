@@ -100,7 +100,7 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 }
 
 // Locale returns the locale.
-func (f *AmountFormatter) Locale() *dto.Locale {
+func (f *AmountFormatter) GetLocale() *dto.Locale {
 	return f.locale
 }
 

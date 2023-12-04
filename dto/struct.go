@@ -8,7 +8,6 @@ package dto
 import "time"
 
 type Territory struct {
-	Code    string
 	Name    string
 	Numeric string
 	Alpha3  string
@@ -44,7 +43,7 @@ type TimeZone string
 type NumberSystem string
 type Locale struct {
 	Name        string
-	Territories map[string]Territory
+	Territories map[string]*Territory
 	Currencies  map[string]*Currency
 	TimeZones   map[string]TimeZone
 	Calendars   map[string]*Calendar
