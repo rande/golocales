@@ -38,29 +38,50 @@ var localDigits = map[string]string{
 	"mymr":    "၀၁၂၃၄၅၆၇၈၉",
 }
 
+type FormattingOptions struct {
+	// AddPlusSign inserts the plus sign in front of positive amounts.
+	// Defaults to false.
+	AddPlusSign bool
+	// Style=accounting formats the amount using the accounting style.
+	// For example, "-3.00 USD" in the "en" locale is formatted as "($3.00)" instead of "-$3.00".
+	// Defaults to "currency".
+	Style string
+	// CurrencyDisplay specifies how the currency will be displayed (symbol/code/none).
+	// Defaults to currency.DisplaySymbol.
+	CurrencyDisplay Display
+	// RoundingMode specifies how the formatted amount will be rounded.
+	// Defaults to currency.RoundHalfUp.
+	RoundingMode RoundingMode
+	// NoGrouping turns off grouping of major digits.
+	// Defaults to false.
+	NoGrouping bool
+	// MinDigits specifies the minimum number of fraction digits.
+	// All zeroes past the minimum will be removed (0 => no trailing zeroes).
+	// Defaults to currency.DefaultDigits (e.g. 2 for USD, 0 for RSD).
+	MinDigits uint8
+	// MaxDigits specifies the maximum number of fraction digits.
+	// Formatted amounts will be rounded to this number of digits.
+	// Defaults to 6, so that most amounts are shown as-is (without rounding).
+	MaxDigits uint8
+}
+
+func CreateFormattingOptions() *FormattingOptions {
+	return &FormattingOptions{
+		AddPlusSign: false,
+		Style: "currency",
+		NoGrouping: false,
+		MinDigits: DefaultDigits,
+		MaxDigits: 6,
+		CurrencyDisplay: DisplaySymbol,
+	}
+}
+
 // Formatter formats and parses currency amounts.
 type AmountFormatter struct {
 	locale  *dto.Locale
 	formats map[string]*dto.NumberFormat
 	symbol  *dto.Symbol
 
-	// NoGrouping turns off grouping of major digits.
-	// Defaults to false.
-	noGrouping bool
-	// MinDigits specifies the minimum number of fraction digits.
-	// All zeroes past the minimum will be removed (0 => no trailing zeroes).
-	// Defaults to currency.DefaultDigits (e.g. 2 for USD, 0 for RSD).
-	minDigits uint8
-	// MaxDigits specifies the maximum number of fraction digits.
-	// Formatted amounts will be rounded to this number of digits.
-	// Defaults to 6, so that most amounts are shown as-is (without rounding).
-	maxDigits uint8
-	// RoundingMode specifies how the formatted amount will be rounded.
-	// Defaults to currency.RoundHalfUp.
-	roundingMode RoundingMode
-	// CurrencyDisplay specifies how the currency will be displayed (symbol/code/none).
-	// Defaults to currency.DisplaySymbol.
-	currencyDisplay Display
 	// SymbolMap specifies custom symbols for individual currency codes.
 	// For example, "USD": "$" means that the $ symbol will be used even if
 	// the current locale's symbol is different ("US$", "$US", etc).
@@ -96,10 +117,6 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 			"decimal":  dFormats[0],
 			"accounting": aFormats[0],
 		},
-		minDigits:       DefaultDigits,
-		maxDigits:       6,
-		roundingMode:    RoundHalfUp,
-		currencyDisplay: DisplaySymbol,
 		SymbolMap:       make(map[string]string),
 	}
 
@@ -111,34 +128,23 @@ func (f *AmountFormatter) GetLocale() *dto.Locale {
 	return f.locale
 }
 
-type FormattingOptions struct {
-	AddPlusSign bool
-	Style string
-}
-
 // Format formats a currency amount.
 func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) string {
-	formattingOptions := &FormattingOptions{
-		AddPlusSign: false,
-		Style: "currency",
-	}
-
+	// default value
+	formattingOptions := CreateFormattingOptions()
 	if len(options) > 0 {
-		formattingOptions.AddPlusSign = options[0].AddPlusSign
-		formattingOptions.Style = options[0].Style
+		formattingOptions = options[0]
 	}
 
-	pattern := f.getPattern(amount, *formattingOptions)
-
-	fmt.Printf("Pattern: %s\n", pattern)
+	pattern := f.getPattern(amount, formattingOptions)
 
 	if amount.IsNegative() {
 		// The minus sign will be provided by the pattern.
 		amount, _ = amount.Mul("-1")
 	}
 
-	formattedNumber := f.formatNumber(amount)
-	formattedCurrency := f.formatCurrency(amount.Code())
+	formattedNumber := f.formatNumber(amount, formattingOptions)
+	formattedCurrency := f.formatCurrency(amount.Code(), formattingOptions)
 
 	if formattedCurrency != "" {
 		// CLDR requires having a space between the letters
@@ -171,8 +177,6 @@ func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) s
 	}
 
 	r := strings.NewReplacer(replacements...)
-
-	fmt.Printf("`%s` `%s` `%#v` => %s\n", amount, pattern, replacements,  r.Replace(pattern))
 
 	return r.Replace(pattern)
 }
@@ -208,7 +212,7 @@ func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) s
 // }
 
 // getPattern returns a positive or negative pattern for a currency amount.
-func (f *AmountFormatter) getPattern(amount Amount, options FormattingOptions) string {
+func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) string {
 
 	pattern := ""
 	// -- deal with currency pattern
@@ -272,18 +276,18 @@ func (f *AmountFormatter) getPattern(amount Amount, options FormattingOptions) s
 }
 
 // formatNumber formats the number for display.
-func (f *AmountFormatter) formatNumber(amount Amount) string {
-	minDigits := f.minDigits
+func (f *AmountFormatter) formatNumber(amount Amount, options *FormattingOptions) string {
+	minDigits := options.MinDigits
 	if minDigits == DefaultDigits {
 		minDigits, _ = GetDigits(amount)
 	}
-	maxDigits := f.maxDigits
+	maxDigits := options.MaxDigits
 	if maxDigits == DefaultDigits {
 		maxDigits, _ = GetDigits(amount)
 	}
-	amount = amount.RoundTo(maxDigits, f.roundingMode)
+	amount = amount.RoundTo(maxDigits, options.RoundingMode)
 	numberParts := strings.Split(amount.Number(), ".")
-	majorDigits := f.groupMajorDigits(numberParts[0], amount.unit)
+	majorDigits := f.groupMajorDigits(numberParts[0], amount.unit, options)
 	minorDigits := ""
 	if len(numberParts) == 2 {
 		minorDigits = numberParts[1]
@@ -310,9 +314,9 @@ func (f *AmountFormatter) formatNumber(amount Amount) string {
 }
 
 // formatCurrency formats the currency for display.
-func (f *AmountFormatter) formatCurrency(currencyCode string) string {
+func (f *AmountFormatter) formatCurrency(currencyCode string, options *FormattingOptions) string {
 	var formatted string
-	switch f.currencyDisplay {
+	switch options.CurrencyDisplay {
 	case DisplaySymbol:
 		if symbol, ok := f.SymbolMap[currencyCode]; ok {
 			formatted = symbol
@@ -329,7 +333,7 @@ func (f *AmountFormatter) formatCurrency(currencyCode string) string {
 }
 
 // groupMajorDigits groups major digits according to the currency format.
-func (f *AmountFormatter) groupMajorDigits(majorDigits string, unit unitSystem) string {
+func (f *AmountFormatter) groupMajorDigits(majorDigits string, unit unitSystem, options *FormattingOptions) string {
 
 	var format *dto.NumberFormat
 	if unit == unitEmpty {
@@ -348,9 +352,10 @@ func (f *AmountFormatter) groupMajorDigits(majorDigits string, unit unitSystem) 
 		panic("No format found")
 	}
 
-	if f.noGrouping || format.PrimaryGroupingSize == 0 {
+	if options.NoGrouping || format.PrimaryGroupingSize == 0 {
 		return majorDigits
 	}
+
 	numDigits := len(majorDigits)
 	minDigits := int(f.locale.Number.MinimumGroupingDigits)
 	primarySize := int(format.PrimaryGroupingSize)

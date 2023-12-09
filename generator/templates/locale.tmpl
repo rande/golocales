@@ -97,7 +97,7 @@ func init() {
                     {{- range $type, $pattern := $group }}
                         "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
-                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",Pattern: "{{.Pattern}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
+                                    {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
                         },
                     {{ end }}
