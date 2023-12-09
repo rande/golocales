@@ -9,11 +9,13 @@
 package golocales_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/rande/golocales"
 	"github.com/rande/golocales/dto"
 	"github.com/rande/golocales/locales/en"
+	"github.com/rande/golocales/locales/es"
 	"github.com/rande/golocales/locales/fr"
 	"github.com/rande/golocales/locales/sr"
 	"github.com/stretchr/testify/assert"
@@ -48,7 +50,7 @@ func TestAmountFormatter_Format(t *testing.T) {
 		{"-1234.59", "USD", "sr", "-1.234,59\u00a0US$", sr.GetLocale()},
 
 		{"1234.00", "EUR", "en", "€1,234.00", en.GetLocale()},
-		{"-1234.00", "EUR", "en", "€-1,234.00", en.GetLocale()},
+		{"-1234.00", "EUR", "en", "-€1,234.00", en.GetLocale()},
 		// {"1234.00", "EUR", "de-CH", "€\u00a01’234.00"},
 		// {"1234.00", "EUR", "sr", "1.234,00\u00a0€"},
 
@@ -79,71 +81,87 @@ func TestAmountFormatter_Format(t *testing.T) {
 	}
 }
 
-// func TestAmountFormatter_AccountingStyle(t *testing.T) {
-// 	tests := []struct {
-// 		number       string
-// 		currencyCode string
-// 		localeID     string
-// 		AddPlusSign  bool
-// 		want         string
-// 	}{
-// 		// Locale with an accounting pattern.
-// 		{"1234.59", "USD", "en", false, "$1,234.59"},
-// 		{"-1234.59", "USD", "en", false, "($1,234.59)"},
-// 		{"1234.59", "USD", "en", true, "+$1,234.59"},
+func TestAmountFormatter_AccountingStyle(t *testing.T) {
 
-// 		// Locale without an accounting pattern.
-// 		{"1234.59", "EUR", "es", false, "1234,59 €"},
-// 		{"-1234.59", "EUR", "es", false, "-1234,59 €"},
-// 		{"1234.59", "EUR", "es", true, "+1234,59 €"},
-// 	}
+	// It is possible to check result with the repl 
+	// from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat
+	// or from you browser console:
+	// 
+	// const number = -123456.789;
+	// const options = {
+	// 	currencySign: 'accounting', 
+	// 	style: 'currency', 
+	// 	currency: 'EUR' 
+	// };
 
-// 	for _, tt := range tests {
-// 		t.Run("", func(t *testing.T) {
-// 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
-// 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewAmountFormatter(locale)
-// 			formatter.AccountingStyle = true
-// 			formatter.AddPlusSign = tt.AddPlusSign
-// 			got := formatter.Format(amount)
-// 			if got != tt.want {
-// 				t.Errorf("got %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+	// console.log(new Intl.NumberFormat('en', options).format(number,),);
+	tests := []struct {
+		number       string
+		currencyCode string
+		AddPlusSign  bool
+		want         string
+		locale       *dto.Locale
+	}{
+		// Locale with an accounting pattern.
+		{"11234.59", "USD", false, "$11,234.59", en.GetLocale()},
+		{"-21234.59", "USD", false, "($21,234.59)", en.GetLocale()},
+		{"31234.59", "USD",  true, "+$31,234.59", en.GetLocale()},
 
-// func TestAmountFormatter_PlusSign(t *testing.T) {
-// 	tests := []struct {
-// 		number       string
-// 		currencyCode string
-// 		localeID     string
-// 		AddPlusSign  bool
-// 		want         string
-// 	}{
-// 		{"123.99", "USD", "en", false, "$123.99"},
-// 		{"123.99", "USD", "en", true, "+$123.99"},
+		// Locale without an accounting pattern.
+		{"41234.59", "EUR", false, "41.234,59 €", es.GetLocale()},
+		{"-51234.59", "EUR", false, "-51.234,59 €", es.GetLocale()},
+		{"61234.59", "EUR", true, "+61.234,59 €", es.GetLocale()},
+	}
 
-// 		{"123.99", "USD", "de-CH", false, "$\u00a0123.99"},
-// 		{"123.99", "USD", "de-CH", true, "$+123.99"},
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			amount, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
+			formatter := golocales.NewAmountFormatter(tt.locale)
+			// formatter.AccountingStyle = true
+			// formatter.AddPlusSign = tt.AddPlusSign
+			got := formatter.Format(amount, &golocales.FormattingOptions{
+				AddPlusSign: tt.AddPlusSign,
+				Style: "accounting",
+			})
 
-// 		{"123.99", "USD", "fr-FR", false, "123,99\u00a0$US"},
-// 		{"123.99", "USD", "fr-FR", true, "+123,99\u00a0$US"},
-// 	}
+			assert.Equal(t, tt.want, got, fmt.Sprintf("got %v, want %v", got, tt.want))
+		})
+	}
+}
 
-// 	for _, tt := range tests {
-// 		t.Run("", func(t *testing.T) {
-// 			amount, _ := currency.NewAmount(tt.number, tt.currencyCode)
-// 			locale := currency.NewLocale(tt.localeID)
-// 			formatter := currency.NewAmountFormatter(locale)
-// 			formatter.AddPlusSign = tt.AddPlusSign
-// 			got := formatter.Format(amount)
-// 			if got != tt.want {
-// 				t.Errorf("got %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+func TestAmountFormatter_PlusSign(t *testing.T) {
+	tests := []struct {
+		number       string
+		currencyCode string
+		AddPlusSign  bool
+		want         string
+		locale 	 *dto.Locale
+	}{
+		{"123.99", "USD", false, "$123.99", en.GetLocale()},
+		{"123.99", "USD", true, "+$123.99", en.GetLocale()},
+
+		// {"123.99", "USD", "de-CH", false, "$\u00a0123.99"},
+		// {"123.99", "USD", "de-CH", true, "$+123.99"},
+
+		// {"123.99", "USD", "fr-FR", false, "123,99\u00a0$US"},
+		// {"123.99", "USD", "fr-FR", true, "+123,99\u00a0$US"},
+	}
+
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			amount, _ := golocales.NewCurrency(tt.number, tt.currencyCode)
+			formatter := golocales.NewAmountFormatter(tt.locale)
+
+			got := formatter.Format(amount, &golocales.FormattingOptions{
+				AddPlusSign: tt.AddPlusSign,
+			})
+
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 // func TestAmountFormatter_Grouping(t *testing.T) {
 // 	tests := []struct {

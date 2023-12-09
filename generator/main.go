@@ -43,7 +43,7 @@ func main() {
 
 	WriteLocale(LocalePath, cldr.RootLocale)
 
-	list := []string{"en.xml", "fr.xml", "fr_CA.xml", "sr.xml"}
+	list := []string{"en.xml", "fr.xml", "fr_CA.xml", "sr.xml", "es.xml"}
 
 	fmt.Printf("\nLoading locales\n")
 	filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {

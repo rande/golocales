@@ -72,14 +72,20 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 	// load correct AmountFormatter
 
 	cFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_standard")
+	aFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_accounting")
 	dFormats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
 
-	if cFormats != nil && len(cFormats) == 0 {
+	if cFormats == nil || len(cFormats) == 0 {
 		panic(fmt.Sprintf("Unable to find default currency formats: %s", locale.Name))
 	}
 
-	if dFormats != nil && len(dFormats) == 0 {
+	if dFormats == nil || len(dFormats) == 0 {
 		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
+	}
+
+	// if the accounting format is not defined, use the default currency format
+	if aFormats == nil || len(aFormats) == 0 {
+		aFormats = cFormats
 	}
 
 	f := &AmountFormatter{
@@ -88,6 +94,7 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 		formats: map[string]*dto.NumberFormat{
 			"currency": cFormats[0],
 			"decimal":  dFormats[0],
+			"accounting": aFormats[0],
 		},
 		minDigits:       DefaultDigits,
 		maxDigits:       6,
@@ -104,28 +111,31 @@ func (f *AmountFormatter) GetLocale() *dto.Locale {
 	return f.locale
 }
 
+type FormattingOptions struct {
+	AddPlusSign bool
+	Style string
+}
+
 // Format formats a currency amount.
-func (f *AmountFormatter) Format(amount Amount) string {
-	pattern := ""
-	if amount.IsCurrency() {
-		pattern = f.formats["currency"].StandardPattern
+func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) string {
+	formattingOptions := &FormattingOptions{
+		AddPlusSign: false,
+		Style: "currency",
 	}
 
-	if amount.IsNumber() {
-		pattern = f.formats["decimal"].StandardPattern
+	if len(options) > 0 {
+		formattingOptions.AddPlusSign = options[0].AddPlusSign
+		formattingOptions.Style = options[0].Style
 	}
 
-	if pattern == "" {
-		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
-	}
+	pattern := f.getPattern(amount, *formattingOptions)
 
-	// Thomas: I have commented this operation as it seems to be a bug
-	//         the output of amount is 1234.00 for negative amount
-	//         and the replace cannot find the minus sign anymore
-	// if amount.IsNegative() {
-	// 	// The minus sign will be provided by the pattern.
-	// 	amount, _ = amount.Mul("-1")
-	// }
+	fmt.Printf("Pattern: %s\n", pattern)
+
+	if amount.IsNegative() {
+		// The minus sign will be provided by the pattern.
+		amount, _ = amount.Mul("-1")
+	}
 
 	formattedNumber := f.formatNumber(amount)
 	formattedCurrency := f.formatCurrency(amount.Code())
@@ -162,6 +172,8 @@ func (f *AmountFormatter) Format(amount Amount) string {
 
 	r := strings.NewReplacer(replacements...)
 
+	fmt.Printf("`%s` `%s` `%#v` => %s\n", amount, pattern, replacements,  r.Replace(pattern))
+
 	return r.Replace(pattern)
 }
 
@@ -195,35 +207,69 @@ func (f *AmountFormatter) Format(amount Amount) string {
 // 	return NewAmount(n, currencyCode)
 // }
 
-// // getPattern returns a positive or negative pattern for a currency amount.
-// func (f *AmountFormatter) getPattern(amount Amount) string {
-// 	var patterns []string
-// 	if f.usesAccountingPattern() {
-// 		patterns = strings.Split(f.format.accountingPattern, ";")
-// 	} else {
-// 		patterns = strings.Split(f.format.standardPattern, ";")
-// 	}
+// getPattern returns a positive or negative pattern for a currency amount.
+func (f *AmountFormatter) getPattern(amount Amount, options FormattingOptions) string {
 
-// 	switch {
-// 	case amount.IsNegative():
-// 		if len(patterns) == 1 {
-// 			return "-" + patterns[0]
-// 		}
-// 		return patterns[1]
-// 	case f.AddPlusSign:
-// 		if len(patterns) == 1 || f.usesAccountingPattern() {
-// 			return "+" + patterns[0]
-// 		}
-// 		return strings.Replace(patterns[1], "-", "+", 1)
-// 	default:
-// 		return patterns[0]
-// 	}
-// }
+	pattern := ""
+	// -- deal with currency pattern
+	if amount.IsCurrency() { 
+		pattern = f.formats["currency"].StandardPattern
+	
+		if options.Style == "accounting" {
+			// the accounting format is `#,##0.00 ¤;(#,##0.00 ¤)`
+			// the first section is for positive number, and the second part is the negative
+			// representation (ie: without the minus sign).
+			patterns := strings.Split(f.formats["accounting"].StandardPattern, ";")
 
-// // usesAccountingPattern returns whether the AmountFormatter needs to use the accounting pattern.
-// func (f *AmountFormatter) usesAccountingPattern() bool {
-// 	return f.AccountingStyle && f.format.accountingPattern != ""
-// }
+			if amount.IsNegative() && len(patterns) > 1 {
+				return patterns[1]
+			} else if amount.IsNegative() {
+				return "-" + patterns[0]
+			} else {
+				pattern = patterns[0]
+			}
+		}
+	}
+
+	// -- deal with number pattern
+	if amount.IsNumber() {
+		pattern = f.formats["decimal"].StandardPattern
+	}
+
+	// if amount.IsPercent() {
+	// 	pattern = f.formats["percent"].StandardPattern
+	// }
+
+	if amount.IsNegative() {
+		pattern = "-" + pattern
+	} else if options.AddPlusSign {
+		// this is not really part of the accounting format, 
+		// but was part of the original Currency library
+		pattern = "+" + pattern
+	}
+
+	if pattern == "" {
+		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
+	}
+
+	return pattern
+
+
+	// switch {
+	// case amount.IsNegative():
+	// 	if len(patterns) == 1 {
+	// 		return "-" + patterns[0]
+	// 	}
+	// 	return patterns[1]
+	// case options.AddPlusSign:
+	// 	if len(patterns) == 1 || options.Style == "accounting" {
+	// 		return "+" + patterns[0]
+	// 	}
+	// 	return strings.Replace(patterns[1], "-", "+", 1)
+	// default:
+	// 	return patterns[0]
+	// }
+}
 
 // formatNumber formats the number for display.
 func (f *AmountFormatter) formatNumber(amount Amount) string {
