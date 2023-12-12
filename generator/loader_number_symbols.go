@@ -16,6 +16,7 @@ type Symbol struct {
 	SuperscriptingExponent string
 	Decimal                string
 	Group                  string
+	CurrencyGroup          string
 	PercentSign            string
 	ApproximatelySign      string
 	Infinity               string
@@ -38,11 +39,16 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 					SuperscriptingExponent: t.SuperscriptingExponent, // ×
 					Decimal:                t.Decimal,                // ,
 					Group:                  t.Group,                  // ,
+					CurrencyGroup:          t.CurrencyGroup,          // ,
 					PercentSign:            t.PercentSign,            // %
 					ApproximatelySign:      t.ApproximatelySign,      // ~
 					Infinity:               t.Infinity,               // ∞
 					TimeSeparator:          t.TimeSeparator,          // :
 					PerMilleSign:           t.PerMille,               // ‰
+				}
+
+				if defaultNumber.CurrencyGroup == "" {
+					defaultNumber.CurrencyGroup = defaultNumber.Group
 				}
 
 				locale.Number.Symbols[t.NumberSystem] = defaultNumber
@@ -79,22 +85,10 @@ func AttachNumberSymbols(locale *Locale, cldr *CLDR, ldml *Ldml) {
 			PerMilleSign:           ifEmptyString(t.PerMille, defaultNumber.PerMilleSign),
 		}
 
-		// don't store if the same as the parent,
-		// we need to check the hierarchie too
-		// @TODO: implements inheritance checks
-		if number.MinusSign == defaultNumber.MinusSign &&
-			number.PlusSign == defaultNumber.PlusSign &&
-			number.Exponential == defaultNumber.Exponential &&
-			number.SuperscriptingExponent == defaultNumber.SuperscriptingExponent &&
-			number.Decimal == defaultNumber.Decimal &&
-			number.Group == defaultNumber.Group &&
-			number.PercentSign == defaultNumber.PercentSign &&
-			number.ApproximatelySign == defaultNumber.ApproximatelySign &&
-			number.Infinity == defaultNumber.Infinity &&
-			number.TimeSeparator == defaultNumber.TimeSeparator &&
-			number.PerMilleSign == defaultNumber.PerMilleSign {
-			continue
-		}
+		// the currency group is rarely set (true?) however, we cannot use the default value
+		// as it can clash with the decimal separator. So if none is set, we use the group
+		// and not the parent one.
+		number.CurrencyGroup = ifEmptyString(t.CurrencyGroup, number.Group)
 
 		locale.Number.Symbols[t.NumberSystem] = number
 	}

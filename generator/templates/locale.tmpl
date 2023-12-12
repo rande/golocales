@@ -22,7 +22,7 @@ import (
 var l = &Locale{}
 
 func init() {
-    l.Name = "{{.Code}}"
+    l.Name = Locale_{{.Code}}
 {{- if .Locale.Parent }}
     l.Parent = {{ .Locale.Parent.Code }}.GetLocale()
 {{- end }}
@@ -63,6 +63,7 @@ func init() {
                     SuperscriptingExponent:"{{.SuperscriptingExponent}}",
                     Decimal:"{{.Decimal}}",
                     Group: "{{.Group}}",
+                    CurrencyGroup: "{{.CurrencyGroup}}",
                     PercentSign: "{{.PercentSign}}",
                     PerMilleSign:"{{.PerMilleSign}}",
                     ApproximatelySign: "{{.ApproximatelySign}}",

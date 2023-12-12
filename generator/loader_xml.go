@@ -645,6 +645,7 @@ type Ldml struct {
 			} `xml:"alias"`
 			Decimal                string `xml:"decimal"`
 			Group                  string `xml:"group"`
+			CurrencyGroup          string `xml:"currencyGroup"`
 			List                   string `xml:"list"`
 			PercentSign            string `xml:"percentSign"`
 			PlusSign               string `xml:"plusSign"`

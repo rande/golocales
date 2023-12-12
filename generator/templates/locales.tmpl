@@ -9,7 +9,8 @@
 package locales
 
 const (
-    {{- range .Cldr.RootLocale.Territories }}
-    {{ .Const }} = "{{ .Code }}"
+    Locale_root = "root"
+    {{- range $code, $locale := .Cldr.Locales }}
+    Locale_{{ $code }} = "{{ $code }}"
     {{- end -}}
 )

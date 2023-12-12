@@ -67,11 +67,11 @@ type FormattingOptions struct {
 
 func CreateFormattingOptions() *FormattingOptions {
 	return &FormattingOptions{
-		AddPlusSign: false,
-		Style: "currency",
-		NoGrouping: false,
-		MinDigits: DefaultDigits,
-		MaxDigits: 6,
+		AddPlusSign:     false,
+		Style:           "currency",
+		NoGrouping:      false,
+		MinDigits:       DefaultDigits,
+		MaxDigits:       6,
 		CurrencyDisplay: DisplaySymbol,
 	}
 }
@@ -91,7 +91,6 @@ type AmountFormatter struct {
 // NewAmountFormatter creates a new AmountFormatter for the given locale.
 func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 	// load correct AmountFormatter
-
 	cFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_standard")
 	aFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_accounting")
 	dFormats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
@@ -113,11 +112,11 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 		locale: locale,
 		symbol: locale.GetSymbol(locale.Number.DefaultNumberSystem),
 		formats: map[string]*dto.NumberFormat{
-			"currency": cFormats[0],
-			"decimal":  dFormats[0],
+			"currency":   cFormats[0],
+			"decimal":    dFormats[0],
 			"accounting": aFormats[0],
 		},
-		SymbolMap:       make(map[string]string),
+		SymbolMap: make(map[string]string),
 	}
 
 	return f
@@ -129,7 +128,7 @@ func (f *AmountFormatter) GetLocale() *dto.Locale {
 }
 
 // Format formats a currency amount.
-func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) string {
+func (f *AmountFormatter) Format(amount Amount, options ...*FormattingOptions) string {
 	// default value
 	formattingOptions := CreateFormattingOptions()
 	if len(options) > 0 {
@@ -213,25 +212,13 @@ func (f *AmountFormatter) Format(amount Amount, options... *FormattingOptions) s
 
 // getPattern returns a positive or negative pattern for a currency amount.
 func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) string {
-
 	pattern := ""
 	// -- deal with currency pattern
-	if amount.IsCurrency() { 
+	if amount.IsCurrency() {
 		pattern = f.formats["currency"].StandardPattern
-	
-		if options.Style == "accounting" {
-			// the accounting format is `#,##0.00 ¤;(#,##0.00 ¤)`
-			// the first section is for positive number, and the second part is the negative
-			// representation (ie: without the minus sign).
-			patterns := strings.Split(f.formats["accounting"].StandardPattern, ";")
 
-			if amount.IsNegative() && len(patterns) > 1 {
-				return patterns[1]
-			} else if amount.IsNegative() {
-				return "-" + patterns[0]
-			} else {
-				pattern = patterns[0]
-			}
+		if options.Style == "accounting" {
+			pattern = f.formats["accounting"].StandardPattern
 		}
 	}
 
@@ -240,24 +227,34 @@ func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) 
 		pattern = f.formats["decimal"].StandardPattern
 	}
 
+	// the accounting format is `#,##0.00 ¤;(#,##0.00 ¤)`
+	// the first section is for positive number, and the second part is the negative
+	// representation (ie: without the minus sign).
+	patterns := strings.Split(pattern, ";")
+
+	if amount.IsNegative() && len(patterns) > 1 {
+		return patterns[1]
+	} else if amount.IsNegative() {
+		return "-" + patterns[0]
+	} else {
+		pattern = patterns[0]
+	}
+
 	// if amount.IsPercent() {
 	// 	pattern = f.formats["percent"].StandardPattern
 	// }
-
-	if amount.IsNegative() {
-		pattern = "-" + pattern
-	} else if options.AddPlusSign {
-		// this is not really part of the accounting format, 
-		// but was part of the original Currency library
-		pattern = "+" + pattern
-	}
 
 	if pattern == "" {
 		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
 	}
 
-	return pattern
+	if options.AddPlusSign {
+		// this is not really part of the accounting format,
+		// but was part of the original Currency library
+		pattern = "+" + pattern
+	}
 
+	return pattern
 
 	// switch {
 	// case amount.IsNegative():
@@ -379,7 +376,7 @@ func (f *AmountFormatter) groupMajorDigits(majorDigits string, unit unitSystem, 
 	for i, j := 0, len(groups)-1; i < j; i, j = i+1, j-1 {
 		groups[i], groups[j] = groups[j], groups[i]
 	}
-	majorDigits = strings.Join(groups, f.symbol.Group)
+	majorDigits = strings.Join(groups, f.symbol.CurrencyGroup)
 
 	return majorDigits
 }

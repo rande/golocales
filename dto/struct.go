@@ -59,6 +59,7 @@ type Symbol struct {
 	SuperscriptingExponent string
 	Decimal                string
 	Group                  string
+	CurrencyGroup          string
 	PercentSign            string
 	ApproximatelySign      string
 	Infinity               string
@@ -120,7 +121,7 @@ func (locale *Locale) GetCurrencyFormats(system, name string) []*NumberFormat {
 	}
 
 	if locale.Parent != nil {
-		locale.Parent.GetCurrencyFormats(system, name)
+		return locale.Parent.GetCurrencyFormats(system, name)
 	}
 
 	return nil

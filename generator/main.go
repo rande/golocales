@@ -37,13 +37,17 @@ func main() {
 	fmt.Printf("\nLoading root locale\n")
 	cldr.RootLocale = LoadLocaleFromFile(CldrPath+"/main/root.xml", cldr)
 
-	WriteGo("territories", LocalePath, cldr.RootLocale)
-	WriteGo("timezones", LocalePath, cldr.RootLocale)
-	WriteGo("currencies", LocalePath, cldr.RootLocale)
+	WriteGo("territories", LocalePath, cldr)
+	WriteGo("timezones", LocalePath, cldr)
+	WriteGo("currencies", LocalePath, cldr)
 
 	WriteLocale(LocalePath, cldr.RootLocale)
 
-	list := []string{"en.xml", "fr.xml", "fr_CA.xml", "sr.xml", "es.xml", "hi.xml"}
+	list := []string{
+		"en.xml", "fr.xml", "fr_CA.xml", "sr.xml",
+		"es.xml", "hi.xml", "en_US.xml", "de_CH.xml",
+		"de.xml", "fr_FR.xml", "de_AT.xml", "en_NL.xml",
+	}
 
 	fmt.Printf("\nLoading locales\n")
 	filepath.Walk(CldrPath+"/main", func(path string, info os.FileInfo, err error) error {
@@ -88,4 +92,6 @@ func main() {
 
 		return nil
 	})
+
+	WriteGo("locales", LocalePath, cldr)
 }

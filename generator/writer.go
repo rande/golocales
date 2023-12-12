@@ -60,7 +60,7 @@ func WriteLocaleGo(locale *Locale, w io.Writer) error {
 	return tpl.Execute(w, ctx)
 }
 
-func WriteGo(filename, basePath string, locale *Locale) error {
+func WriteGo(filename, basePath string, cldr *CLDR) error {
 	fs := GetEmbedFS()
 
 	var f *os.File
@@ -77,7 +77,7 @@ func WriteGo(filename, basePath string, locale *Locale) error {
 	tpl := template.Must(template.ParseFS(fs, "templates/"+filename+".tmpl"))
 
 	ctx := map[string]interface{}{
-		"Locale": locale,
+		"Cldr":   cldr,
 	}
 
 	tpl.Execute(f, ctx)

@@ -9,7 +9,7 @@
 package locales
 
 const (
-    {{- range .Locale.TimeZones }}
+    {{- range .Cldr.RootLocale.TimeZones }}
     {{ .Const }} = "{{ .Code }}"
     {{- end -}}
 )

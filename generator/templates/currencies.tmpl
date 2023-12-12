@@ -9,7 +9,7 @@
 package locales
 
 const (
-    {{- range .Locale.Currencies }}
+    {{- range .Cldr.RootLocale.Currencies }}
     {{ .Const }} = "{{ .Code }}"
     {{- end -}}
 )
