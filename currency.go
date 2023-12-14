@@ -65,6 +65,11 @@ func GetDigits(amount Amount) (digits uint8, ok bool) {
 		return GetCurrencyDigits(amount.code)
 	}
 
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#minimumfractiondigits
+	if amount.unit == unitPercent {
+		return 0, true
+	}
+
 	// TODO: find out for other unit type
 	return 2, true
 }

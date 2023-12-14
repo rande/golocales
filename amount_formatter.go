@@ -94,12 +94,17 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 	cFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_standard")
 	aFormats := locale.GetCurrencyFormats(locale.Number.DefaultNumberSystem, "default_accounting")
 	dFormats := locale.GetDecimalFormats(locale.Number.DefaultNumberSystem, "default")
+	pFormats := locale.GetPercentFormats(locale.Number.DefaultNumberSystem, "default")
 
 	if cFormats == nil || len(cFormats) == 0 {
 		panic(fmt.Sprintf("Unable to find default currency formats: %s", locale.Name))
 	}
 
 	if dFormats == nil || len(dFormats) == 0 {
+		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
+	}
+
+	if pFormats == nil || len(pFormats) == 0 {
 		panic(fmt.Sprintf("Unable to find default decimal formats: %s", locale.Name))
 	}
 
@@ -115,6 +120,7 @@ func NewAmountFormatter(locale *dto.Locale) *AmountFormatter {
 			"currency":   cFormats[0],
 			"decimal":    dFormats[0],
 			"accounting": aFormats[0],
+			"percent":    pFormats[0],
 		},
 		SymbolMap: make(map[string]string),
 	}
@@ -162,20 +168,32 @@ func (f *AmountFormatter) Format(amount Amount, options ...*FormattingOptions) s
 	}
 
 	replacements := []string{
-		"0.00", formattedNumber,
 		"+", f.symbol.PlusSign,
 		"-", f.symbol.MinusSign,
 	}
 
-	if formattedCurrency == "" {
-		// Many patterns have a non-breaking space between
-		// the number and currency, not needed in this case.
-		replacements = append(replacements, "\u00a0¤", "", "¤\u00a0", "", "¤", "")
-	} else {
-		replacements = append(replacements, "¤", formattedCurrency)
+	if amount.IsPercent() {
+		replacements = append(replacements, "0", formattedNumber, "%", f.symbol.PercentSign)
+	}
+
+	if amount.IsNumber() {
+		replacements = append(replacements, "0.00", formattedNumber)
+	}
+
+	if amount.IsCurrency() {
+		replacements = append(replacements, "0.00", formattedNumber)
+		if formattedCurrency == "" {
+			// Many patterns have a non-breaking space between
+			// the number and currency, not needed in this case.
+			replacements = append(replacements, "\u00a0¤", "", "¤\u00a0", "", "¤", "")
+		} else {
+			replacements = append(replacements, "¤", formattedCurrency)
+		}
 	}
 
 	r := strings.NewReplacer(replacements...)
+
+	fmt.Printf("pattern: %#v %s %s\n", replacements, pattern, r.Replace(pattern))
 
 	return r.Replace(pattern)
 }
@@ -227,6 +245,11 @@ func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) 
 		pattern = f.formats["decimal"].StandardPattern
 	}
 
+	// -- deal with percent pattern
+	if amount.IsPercent() {
+		pattern = f.formats["percent"].StandardPattern
+	}
+
 	// the accounting format is `#,##0.00 ¤;(#,##0.00 ¤)`
 	// the first section is for positive number, and the second part is the negative
 	// representation (ie: without the minus sign).
@@ -240,10 +263,6 @@ func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) 
 		pattern = patterns[0]
 	}
 
-	// if amount.IsPercent() {
-	// 	pattern = f.formats["percent"].StandardPattern
-	// }
-
 	if pattern == "" {
 		panic(fmt.Sprintf("Unable to find pattern for %s", amount.Code()))
 	}
@@ -255,25 +274,14 @@ func (f *AmountFormatter) getPattern(amount Amount, options *FormattingOptions) 
 	}
 
 	return pattern
-
-	// switch {
-	// case amount.IsNegative():
-	// 	if len(patterns) == 1 {
-	// 		return "-" + patterns[0]
-	// 	}
-	// 	return patterns[1]
-	// case options.AddPlusSign:
-	// 	if len(patterns) == 1 || options.Style == "accounting" {
-	// 		return "+" + patterns[0]
-	// 	}
-	// 	return strings.Replace(patterns[1], "-", "+", 1)
-	// default:
-	// 	return patterns[0]
-	// }
 }
 
 // formatNumber formats the number for display.
 func (f *AmountFormatter) formatNumber(amount Amount, options *FormattingOptions) string {
+	if amount.IsPercent() {
+		amount, _ = amount.Mul("100")
+	}
+
 	minDigits := options.MinDigits
 	if minDigits == DefaultDigits {
 		minDigits, _ = GetDigits(amount)
@@ -298,6 +306,7 @@ func (f *AmountFormatter) formatNumber(amount Amount, options *FormattingOptions
 			minorDigits += strings.Repeat("0", int(minDigits)-len(minorDigits))
 		}
 	}
+
 	b := strings.Builder{}
 	b.WriteString(majorDigits)
 	if minorDigits != "" {

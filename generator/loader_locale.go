@@ -46,6 +46,7 @@ func LoadLocale(cldr *CLDR, ldml *Ldml) *Locale {
 			Symbols:    map[string]*Symbol{},
 			Decimals:   map[string]FormatGroup{},
 			Currencies: map[string]FormatGroup{},
+			Percents:   map[string]FormatGroup{},
 		},
 		Keys:        map[string]string{},
 		Territories: map[string]*Territory{},

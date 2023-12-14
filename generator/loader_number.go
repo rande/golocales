@@ -15,6 +15,7 @@ const DefaultNumberSystem = "latn"
 type Number struct {
 	Symbols               map[string]*Symbol
 	Decimals              map[string]FormatGroup
+	Percents              map[string]FormatGroup
 	Currencies            map[string]FormatGroup // numbering system => format => format
 	DefaultNumberSystem   string
 	MinimumGroupingDigits int
@@ -52,6 +53,7 @@ func AttachNumber(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 	AttachNumberSymbols(locale, cldr, ldml)
 	AttachNumberDecimals(locale, cldr, ldml)
+	AttachNumberPercent(locale, cldr, ldml)
 	AttachNumberCurrencies(locale, cldr, ldml)
 }
 
@@ -80,4 +82,32 @@ func AttachPattern(format *NumberFormat) {
 
 	// Strip the grouping info from the patterns, now that it is available separately.
 	format.StandardPattern = processPattern(format.Pattern)
+}
+
+func AttachNumberPercent(locale *Locale, cldr *CLDR, ldml *Ldml) {
+	for _, t := range ldml.Numbers.PercentFormats {
+		// no symbol is defined, so we skip
+		if t.NumberSystem == "" {
+			continue
+		}
+
+		pattern := t.PercentFormatLength.PercentFormat.Pattern
+
+		if pattern == "" {
+			continue
+		}
+
+		// a code is defined in the locale, so we need to override the default values
+		if locale.Number.Percents[t.NumberSystem] == nil {
+			locale.Number.Percents[t.NumberSystem] = FormatGroup{}
+		}
+
+		format := &NumberFormat{
+			Pattern: pattern,
+		}
+
+		AttachPattern(format)
+
+		locale.Number.Percents[t.NumberSystem]["default"] = append(locale.Number.Percents[t.NumberSystem]["default"], format)
+	}
 }

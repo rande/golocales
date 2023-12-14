@@ -684,7 +684,7 @@ type Ldml struct {
 				} `xml:"alias"`
 			} `xml:"decimalFormatLength"`
 		} `xml:"decimalFormats"`
-		PercentFormats struct {
+		PercentFormats []struct {
 			Text                string `xml:",chardata"`
 			NumberSystem        string `xml:"numberSystem,attr"`
 			PercentFormatLength struct {

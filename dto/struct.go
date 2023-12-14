@@ -35,6 +35,7 @@ type Number struct {
 	Symbols               map[string]*Symbol
 	Decimals              map[string]FormatGroup
 	Currencies            map[string]FormatGroup
+	Percents              map[string]FormatGroup
 	DefaultNumberSystem   string
 	MinimumGroupingDigits int
 }
@@ -106,6 +107,22 @@ func (locale *Locale) GetDecimalFormats(system, name string) []*NumberFormat {
 
 	if locale.Parent != nil {
 		return locale.Parent.GetDecimalFormats(system, name)
+	}
+
+	return nil
+}
+
+func (locale *Locale) GetPercentFormats(system, name string) []*NumberFormat {
+	if systemFormat, ok := locale.Number.Percents[system]; ok {
+		if format, ok := systemFormat[name]; ok {
+			if len(format) > 0 {
+				return format
+			}
+		}
+	}
+
+	if locale.Parent != nil {
+		return locale.Parent.GetPercentFormats(system, name)
 	}
 
 	return nil

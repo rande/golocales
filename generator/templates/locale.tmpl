@@ -82,7 +82,25 @@ func init() {
                     {{- range $type, $pattern := $group }}
                         "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
+                                    // {{ .Pattern }}
                                     {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
+                            {{- end }}
+                        },
+                    {{ end }}
+                },
+            {{- end -}}
+        }, // end locale.Number.Decimals
+{{- end }}
+{{ if .Locale.Number.Percents }}
+        Percents: map[string]FormatGroup{
+            {{- range $numberingSystem, $group := .Locale.Number.Percents }}
+                // key is the numbering system
+                "{{$numberingSystem}}": {
+                    {{- range $type, $pattern := $group }}
+                        "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
+                            {{- range $pattern }}
+                                    // {{ .Pattern }}
+                                    {PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
                         },
                     {{ end }}
@@ -98,6 +116,7 @@ func init() {
                     {{- range $type, $pattern := $group }}
                         "{{ $type }}": []*NumberFormat{ // len {{ len $pattern }}
                             {{- range $pattern }}
+                                    // {{ .Pattern }}
                                     {Type: "{{.Type}}",Alt: "{{.Alt}}",Count: "{{.Count}}",PrimaryGroupingSize: {{.PrimaryGroupingSize}}, SecondaryGroupingSize: {{ .SecondaryGroupingSize }}, StandardPattern: "{{ .StandardPattern }}"},
                             {{- end }}
                         },

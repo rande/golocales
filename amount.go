@@ -80,6 +80,15 @@ const (
 	unitPercent             = 2
 )
 
+func NewPercent(n string) (Amount, error) {
+	number := apd.Decimal{}
+	if _, _, err := number.SetString(n); err != nil {
+		return Amount{}, InvalidNumberError{n}
+	}
+
+	return Amount{number, "", unitPercent}, nil
+}
+
 func NewCurrency(n, code string) (Amount, error) {
 	number := apd.Decimal{}
 	if _, _, err := number.SetString(n); err != nil {
