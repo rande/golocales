@@ -71,8 +71,9 @@ func CreateFormattingOptions() *FormattingOptions {
 		Style:           "currency",
 		NoGrouping:      false,
 		MinDigits:       DefaultDigits,
-		MaxDigits:       6,
+		MaxDigits:       DefaultDigits,
 		CurrencyDisplay: DisplaySymbol,
+		RoundingMode:    RoundHalfUp,
 	}
 }
 
@@ -193,8 +194,6 @@ func (f *AmountFormatter) Format(amount Amount, options ...*FormattingOptions) s
 
 	r := strings.NewReplacer(replacements...)
 
-	fmt.Printf("pattern: %#v %s %s\n", replacements, pattern, r.Replace(pattern))
-
 	return r.Replace(pattern)
 }
 
@@ -291,12 +290,15 @@ func (f *AmountFormatter) formatNumber(amount Amount, options *FormattingOptions
 		maxDigits, _ = GetDigits(amount)
 	}
 	amount = amount.RoundTo(maxDigits, options.RoundingMode)
+
 	numberParts := strings.Split(amount.Number(), ".")
 	majorDigits := f.groupMajorDigits(numberParts[0], amount.unit, options)
 	minorDigits := ""
+
 	if len(numberParts) == 2 {
 		minorDigits = numberParts[1]
 	}
+
 	if minDigits < maxDigits {
 		// Strip any trailing zeroes.
 		minorDigits = strings.TrimRight(minorDigits, "0")

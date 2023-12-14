@@ -408,16 +408,8 @@ func TestAmountFormatter_Percent(t *testing.T) {
 		locale *dto.Locale
 	}{
 		{"0.12", "12%", en.GetLocale()},
-		// {"0.122112", "12%", en.GetLocale()},
-		// {"22.21", "USD\u00a01,234.59", en.GetLocale()},
-		// {"32.21", "1,234.59", en.GetLocale()},
-
-		// {"34.59", "$\u00a01.234,59", de_AT.GetLocale()},
-		// {"44.59", "USD\u00a01.234,59", de_AT.GetLocale()},
-		// {"55.59", "1.234,59", de_AT.GetLocale()},
-
-		// {"-22.59", "(1,234.59)", en.GetLocale()},
-		// {"-33.59", "(1.234,59)", en_NL.GetLocale()},
+		{"0.126", "13%", en.GetLocale()},
+		{"0.123", "12%", en.GetLocale()},
 	}
 
 	for _, tt := range tests {
@@ -432,23 +424,15 @@ func TestAmountFormatter_Percent(t *testing.T) {
 	}
 }
 
-func TestAmountFormatter_PercentMinDigit(t *testing.T) {
+func TestAmountFormatter_PercentMaxDigit(t *testing.T) {
 	tests := []struct {
 		number string
 		want   string
 		locale *dto.Locale
 	}{
 		{"0.12", "12.00%", en.GetLocale()},
-		// {"0.122112", "12%", en.GetLocale()},
-		// {"22.21", "USD\u00a01,234.59", en.GetLocale()},
-		// {"32.21", "1,234.59", en.GetLocale()},
-
-		// {"34.59", "$\u00a01.234,59", de_AT.GetLocale()},
-		// {"44.59", "USD\u00a01.234,59", de_AT.GetLocale()},
-		// {"55.59", "1.234,59", de_AT.GetLocale()},
-
-		// {"-22.59", "(1,234.59)", en.GetLocale()},
-		// {"-33.59", "(1.234,59)", en_NL.GetLocale()},
+		{"0.122112", "12.21%", en.GetLocale()},
+		{"0.122152", "12.22%", en.GetLocale()},
 	}
 
 	for _, tt := range tests {
@@ -457,6 +441,7 @@ func TestAmountFormatter_PercentMinDigit(t *testing.T) {
 			formatter := golocales.NewAmountFormatter(tt.locale)
 
 			options := golocales.CreateFormattingOptions()
+			options.MaxDigits = 2
 			options.MinDigits = 2
 			got := formatter.Format(amount, options)
 
