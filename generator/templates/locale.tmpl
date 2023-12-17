@@ -143,14 +143,8 @@ func init() {
             Formatters: map[string]CalendarFormatter{ 
                 {{- range $key, $formatter := $calendar.Formatters }}
                     "{{$key}}": func(tm time.Time, timeZone string) string {
-                        if tz, err := time.LoadLocation(timeZone); err != nil {
-                            panic(err)
-                        } else {
-                            t := tm.In(tz)
-
-                            // {{$formatter.Pattern }} 
-                            return {{$formatter.Func}}
-                        }
+                        // {{$formatter.Comment }}
+                        {{ $formatter.Func}}
                     },
                 {{- end }}
             },

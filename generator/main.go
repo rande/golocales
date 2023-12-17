@@ -45,7 +45,8 @@ func main() {
 
 	list := []string{
 		"en.xml", "fr.xml", "fr_CA.xml", "sr.xml",
-		"es.xml", "hi.xml", "en_US.xml", "de_CH.xml",
+		"es.xml",
+		"hi.xml", "en_US.xml", "de_CH.xml",
 		"de.xml", "fr_FR.xml", "de_AT.xml", "en_NL.xml",
 	}
 

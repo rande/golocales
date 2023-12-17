@@ -159,3 +159,17 @@ func (locale *Locale) GetCalendarLabels(system, name string) []string {
 
 	return nil
 }
+
+func (locale *Locale) GetCalendarFormatter(system, name string) CalendarFormatter {
+	if calendar, ok := locale.Calendars[system]; ok {
+		if formatter, ok := calendar.Formatters[name]; ok {
+			return formatter
+		}
+	}
+
+	if locale.Parent != nil {
+		return locale.Parent.GetCalendarFormatter(system, name)
+	}
+
+	return nil
+}

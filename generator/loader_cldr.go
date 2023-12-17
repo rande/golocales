@@ -18,6 +18,7 @@ type CLDR struct {
 	Locales     map[string]*Locale
 	Territories map[string]*Territory
 	Currencies  map[string]*Currency
+	DayPeriods  map[string][]*DayPeriodRule
 }
 
 func LoadCLDR(CldrPath string) *CLDR {
@@ -26,12 +27,13 @@ func LoadCLDR(CldrPath string) *CLDR {
 	cldr.Locales = map[string]*Locale{}
 	cldr.Territories = map[string]*Territory{}
 	cldr.Currencies = map[string]*Currency{}
+	cldr.DayPeriods = map[string][]*DayPeriodRule{}
 
 	// load validity files
-	validityFiles := []string{
-		"currency.xml",
-		"language.xml",
-		"region.xml",
+	validityFiles := map[string]func(cldr *CLDR, supplemental *SupplementalData){
+		"currency.xml": AttachValidity,
+		"language.xml": AttachValidity,
+		"region.xml":   AttachValidity,
 		// "script.xml",
 		// "subdivision.xml",
 		// "unit.xml",
@@ -39,7 +41,7 @@ func LoadCLDR(CldrPath string) *CLDR {
 	}
 
 	// validities are required to load root module
-	for _, file := range validityFiles {
+	for file, handler := range validityFiles {
 		fmt.Printf(" > Loading validity file: %s\n", file)
 
 		supplemental := &SupplementalData{}
@@ -47,35 +49,35 @@ func LoadCLDR(CldrPath string) *CLDR {
 			log.Panic(err.Error())
 		}
 
-		AttachSupplemental(cldr, supplemental)
+		handler(cldr, supplemental)
 
 	}
 
 	// load supplemental files
-	supplementalFiles := []string{
+	supplementalFiles := map[string]func(cldr *CLDR, supplemental *SupplementalData){
 		// "attributeValueValidity.xml",
 		// "characters.xml",
 		// "coverageLevels.xml",
-		// "dayPeriods.xml",
+		"dayPeriods.xml": AttachDayPeriodRules,
 		// "genderList.xml",
 		// "grammaticalFeatures.xml",
 		// "languageGroup.xml",
 		// "languageInfo.xml",
 		// "likelySubtags.xml",
-		"metaZones.xml",
+		"metaZones.xml": AttachMetaZones,
 		// "numberingSystems.xml",
 		// "ordinals.xml",
 		// "pluralRanges.xml",
 		// "plurals.xml",
 		// "rgScope.xml",
 		// "subdivisions.xml",
-		"supplementalData.xml",
+		"supplementalData.xml": AttachSupplementalData,
 		// "supplementalMetadata.xml",
 		// "units.xml",
 		// "windowsZones.xml",
 	}
 
-	for _, file := range supplementalFiles {
+	for file, handler := range supplementalFiles {
 		fmt.Printf(" > Loading supplemental file: %s\n", file)
 
 		supplemental := &SupplementalData{}
@@ -83,7 +85,7 @@ func LoadCLDR(CldrPath string) *CLDR {
 			log.Panic(err.Error())
 		}
 
-		AttachSupplemental(cldr, supplemental)
+		handler(cldr, supplemental)
 	}
 
 	return cldr

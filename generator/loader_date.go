@@ -8,11 +8,12 @@ package main
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 )
 
 type CalendarFormatter struct {
-	Pattern string
+	Comment string
 	Func    string
 }
 
@@ -49,8 +50,8 @@ func AttachLabels(locale *Locale, cldr *CLDR, ldml *Ldml) {
 		}
 
 		// only support abbreviated and wide, ie: Sun and Sunday
-		validTypes := []string{"abbreviated", "wide" /*, "narrow" */}
-		validFormats := []string{"format" /*, "stand-alone" */}
+		validTypes := []string{"abbreviated", "wide", "narrow"}
+		validFormats := []string{"format", "stand-alone"}
 
 		for _, month := range calendar.Months.MonthContext {
 			if !slices.Contains(validFormats, month.Type) {
@@ -90,58 +91,115 @@ func AttachLabels(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 		for _, date := range calendar.DateFormats.DateFormatLength {
 			key := fmt.Sprintf("date_%s", date.Type)
-			pattern := ParseDatePattern(date.DateFormat.Pattern)
-			pattern = strings.Replace(pattern, "calendarSystem", calendar.Type, -1)
+			Func := ParseDatePattern(date.DateFormat.Pattern)
+			Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
 
 			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
-				Pattern: date.DateFormat.Pattern,
-				Func:    pattern,
+				Comment: "Pattern: " + date.DateFormat.Pattern,
+				Func:    Func,
 			}
 		}
 
 		for _, time := range calendar.TimeFormats.TimeFormatLength {
 			key := fmt.Sprintf("time_%s", time.Type)
-			pattern := ParseDatePattern(time.TimeFormat.Pattern)
-			pattern = strings.Replace(pattern, "calendarSystem", calendar.Type, -1)
+			Func := ParseDatePattern(time.TimeFormat.Pattern)
+			Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
 
 			locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
-				Pattern: time.TimeFormat.Pattern,
-				Func:    pattern,
+				Comment: "Pattern: " + time.TimeFormat.Pattern,
+				Func:    Func,
+			}
+		}
+
+		// -- Load the period labels for the current locale, and then use them
+		// to generate the function to get the period name based on the time
+		// There are multiple period group: narrow, wide, etc ...
+		if periods, ok := cldr.DayPeriods[locale.Code]; ok {
+			for _, period := range calendar.DayPeriods.DayPeriodContext {
+				if !slices.Contains(validFormats, period.Type) {
+					continue
+				}
+
+				// iterate over defined set, and then the aliases
+				for _, p := range period.DayPeriodWidth {
+					key := fmt.Sprintf("p_%s_%s", period.Type, p.Type)
+
+					// Yes, this part should resolve the alias to avoid
+					// nested call, but it's not implemented yet
+					if p.Alias.Path != "" {
+						Func := GenAliasDatePeriodFunc(GetKeyAlias(p.Alias.Path, period.Type, p.Type))
+						Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
+
+						locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+							Comment: "This is an alias to another configuration",
+							Func:    Func,
+						}
+
+						continue
+					}
+
+					labels := map[string]string{}
+
+					for _, l := range p.DayPeriod {
+						labels[l.Type] = l.Text
+					}
+
+					Func := GenDatePeriodFunc(periods, labels)
+					Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
+					Func = strings.Replace(Func, "formatSystem", key, -1)
+
+					locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+						Comment: "No pattern defined, read the periods configuration",
+						Func:    Func,
+					}
+				}
 			}
 		}
 	}
 }
 
-func SplitDatePattern(pattern string) []string {
-	letter := rune(-1)
-	groups := []string{}
+func SplitDatePattern(pattern string) (string, []string) {
+	subset := []rune("")
 
-	inc := 0
-	for _, c := range pattern {
-		if letter == rune(-1) {
-			letter = c
-			groups = append(groups, "")
-		}
-
-		if letter != c || (c < 65 && c > 90 && c < 97 && c > 122) { // new group
-			inc++
-			groups = append(groups, "")
-		}
-
-		letter = c
-		groups[inc] += string(c)
-	}
-
-	return groups
-}
-
-func ParseDatePattern(pattern string) string {
-	groups := SplitDatePattern(pattern)
-
+	isLiteral := false
 	var str = ""
 	var params = []string{}
-	for _, group := range groups {
-		s, p := GetPattern(string(group))
+	for _, c := range pattern {
+		// start a group literal, 39 is a quote
+		if c == 39 && !isLiteral {
+			isLiteral = true
+			continue
+		}
+
+		// close a group literal
+		if c == 39 && isLiteral {
+			isLiteral = false
+			continue
+		}
+
+		if isLiteral {
+			str += string(c)
+			continue
+		}
+
+		if c > 64 && c < 91 || c > 96 && c < 123 {
+			subset = append(subset, c)
+		} else { // new group
+			s, p := GetPattern(string(subset))
+
+			str += s
+			if len(p) > 0 {
+				params = append(params, p)
+			}
+
+			str += string(c)
+
+			subset = []rune("")
+		}
+	}
+
+	if len(subset) > 0 {
+		s, p := GetPattern(string(subset))
 
 		str += s
 		if len(p) > 0 {
@@ -149,7 +207,23 @@ func ParseDatePattern(pattern string) string {
 		}
 	}
 
-	return "fmt.Sprintf(\"" + str + "\", " + strings.Join(params, ", ") + ")"
+	return str, params
+}
+
+func ParseDatePattern(pattern string) string {
+	str, params := SplitDatePattern(pattern)
+
+	Func := `
+	if tz, err := time.LoadLocation(timeZone); err != nil {
+		panic(err)
+	} else {
+		t := tm.In(tz)
+		`
+
+	Func += "return fmt.Sprintf(\"" + str + "\", " + strings.Join(params, ", ") + ")"
+	Func += "\n}"
+
+	return Func
 }
 
 func GetPattern(pattern string) (string, string) {
@@ -242,7 +316,112 @@ func GetPattern(pattern string) (string, string) {
 		fallthrough
 	case "ZZZZZ":
 		return "%s", "t.Format(\"Z07:00:00\")"
+	case "a":
+		fallthrough
+	case "aa":
+		fallthrough
+	case "aaa":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_abbreviated\")(tm, timeZone)"
+	case "aaaa":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_wide\")(tm, timeZone)"
+	case "aaaaa":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_narrow\")(tm, timeZone)"
 	}
 
 	return pattern, ""
+}
+
+func GenDatePeriodFunc(periods []*DayPeriodRule, labels map[string]string) string {
+	Func := `
+	if tz, err := time.LoadLocation(timeZone); err != nil {
+		panic(err)
+	} else {
+		// periods exist, use them
+		t := tm.In(tz)
+		hour := t.Hour()*100 + t.Minute()
+	`
+
+	// first generate the equal rule
+	for _, v := range periods {
+		if v.At == -1 {
+			continue
+		}
+
+		if label, ok := labels[v.Type]; ok {
+			Func += `if hour == ` + strconv.Itoa(v.At) + ` {
+				return "` + label + `"
+			}
+			`
+		} else {
+			// fmt.Printf("Unable to find the label for %s\n", v.Type)
+			// Func += `
+			// // Unable to find the label
+			// if hour == ` + strconv.Itoa(v.At) + ` {
+			// 	return "` + v.Type + `"
+			// }
+			// `
+		}
+	}
+
+	// second generate the range rule
+	for _, v := range periods {
+		if v.At != -1 {
+			continue
+		}
+
+		if label, ok := labels[v.Type]; ok {
+
+			if v.Before > v.From {
+				Func += `if hour >= ` + strconv.Itoa(v.From) + ` && hour < ` + strconv.Itoa(v.Before) + ` {
+					return "` + label + `"
+				}
+				`
+			} else {
+				Func += `if (hour >= ` + strconv.Itoa(v.From) + ` && hour < 2400) || (hour >= 0 && hour < ` + strconv.Itoa(v.Before) + `) {
+					return "` + label + `"
+				}
+				`
+			}
+		} else {
+			// Func += `
+			// // unable to find the label
+			// if hour >= ` + strconv.Itoa(v.From) + ` && hour < ` + strconv.Itoa(v.Before) + ` {
+			// 	return "` + v.Type + `"
+			// }
+			// `
+		}
+	}
+
+	// Func += `
+	// if l.Name == "root" {
+	// 	return t.Format("PM")
+	// }
+	// `
+	Func += "}\n"
+
+	Func += `return l.Parent.GetCalendarFormatter("calendarSystem", "formatSystem")(tm, timeZone)`
+
+	return Func
+}
+
+func GetKeyAlias(alias, context, ptype string) string {
+	aliases := ReadAlias(alias)
+
+	if len(aliases) == 0 {
+		panic("Unable to read/find alias: " + alias)
+	}
+
+	if len(aliases) == 1 {
+		return fmt.Sprintf("p_%s_%s", context, aliases[0])
+	}
+
+	if len(aliases) == 2 {
+		return fmt.Sprintf("p_%s_%s", aliases[0], aliases[1])
+	}
+
+	panic("Unsupported chain, please check alis: " + alias)
+}
+
+func GenAliasDatePeriodFunc(alias string) string {
+	return "return l.Calendars[\"calendarSystem\"].Formatters[\"" + alias + "\"](tm, timeZone)"
 }

@@ -5,7 +5,10 @@
 
 package main
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"regexp"
+)
 
 type SupplementalData struct {
 	XMLName xml.Name `xml:"supplementalData"`
@@ -14,6 +17,7 @@ type SupplementalData struct {
 		Text   string `xml:",chardata"`
 		Number string `xml:"number,attr"`
 	} `xml:"version"`
+
 	IdValidity struct {
 		Text string `xml:",chardata"`
 		ID   []struct {
@@ -22,6 +26,7 @@ type SupplementalData struct {
 			IdStatus string `xml:"idStatus,attr"`
 		} `xml:"id"`
 	} `xml:"idValidity"`
+
 	MetaZones struct {
 		Text         string `xml:",chardata"`
 		MetazoneInfo struct {
@@ -91,6 +96,7 @@ type SupplementalData struct {
 			} `xml:"currency"`
 		} `xml:"region"`
 	} `xml:"currencyData"`
+
 	TerritoryContainment struct {
 		Text  string `xml:",chardata"`
 		Group []struct {
@@ -101,6 +107,7 @@ type SupplementalData struct {
 			Grouping string `xml:"grouping,attr"`
 		} `xml:"group"`
 	} `xml:"territoryContainment"`
+
 	LanguageData struct {
 		Text     string `xml:",chardata"`
 		Language []struct {
@@ -111,6 +118,7 @@ type SupplementalData struct {
 			Alt         string `xml:"alt,attr"`
 		} `xml:"language"`
 	} `xml:"languageData"`
+
 	TerritoryInfo struct {
 		Text      string `xml:",chardata"`
 		Territory []struct {
@@ -130,6 +138,7 @@ type SupplementalData struct {
 			} `xml:"languagePopulation"`
 		} `xml:"territory"`
 	} `xml:"territoryInfo"`
+
 	CalendarData struct {
 		Text     string `xml:",chardata"`
 		Calendar []struct {
@@ -256,6 +265,22 @@ type SupplementalData struct {
 			URI  string `xml:"uri,attr"`
 		} `xml:"reference"`
 	} `xml:"references"`
+
+	DayPeriodRuleSet []struct {
+		Text           string `xml:",chardata"`
+		Type           string `xml:"type,attr"`
+		DayPeriodRules []struct {
+			Text          string `xml:",chardata"`
+			Locales       string `xml:"locales,attr"`
+			DayPeriodRule []struct {
+				Text   string `xml:",chardata"`
+				Type   string `xml:"type,attr"`
+				From   string `xml:"from,attr"`
+				Before string `xml:"before,attr"`
+				At     string `xml:"at,attr"`
+			} `xml:"dayPeriodRule"`
+		} `xml:"dayPeriodRules"`
+	} `xml:"dayPeriodRuleSet"`
 }
 
 type XmlAnnotation struct {
@@ -485,9 +510,14 @@ type Ldml struct {
 						Text     string `xml:",chardata"`
 						Type     string `xml:"type,attr"`
 						DayWidth []struct {
-							Text string `xml:",chardata"`
-							Type string `xml:"type,attr"`
-							Day  []struct {
+							Text  string `xml:",chardata"`
+							Type  string `xml:"type,attr"`
+							Alias struct {
+								Text   string `xml:",chardata"`
+								Source string `xml:"source,attr"`
+								Path   string `xml:"path,attr"`
+							} `xml:"alias"`
+							Day []struct {
 								Text string `xml:",chardata"`
 								Type string `xml:"type,attr"`
 							} `xml:"day"`
@@ -521,6 +551,11 @@ type Ldml struct {
 								Text string `xml:",chardata"`
 								Type string `xml:"type,attr"`
 							} `xml:"dayPeriod"`
+							Alias struct {
+								Text   string `xml:",chardata"`
+								Source string `xml:"source,attr"`
+								Path   string `xml:"path,attr"`
+							} `xml:"alias"`
 						} `xml:"dayPeriodWidth"`
 					} `xml:"dayPeriodContext"`
 				} `xml:"dayPeriods"`
@@ -870,4 +905,16 @@ type Ldml struct {
 			} `xml:"nameField"`
 		} `xml:"sampleName"`
 	} `xml:"personNames"`
+}
+
+// This implementation is quite fragile, but it works for now.
+func ReadAlias(alias string) []string {
+	re := regexp.MustCompile("type='([a-z]*)'")
+	result := re.FindAllStringSubmatch(alias, -1)
+
+	var types []string
+	for _, r := range result {
+		types = append(types, r[1])
+	}
+	return types
 }
