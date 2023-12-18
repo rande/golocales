@@ -59,9 +59,7 @@ func AttachSupplementalData(cldr *CLDR, supplemental *SupplementalData) {
 			Alpha3:  t.Alpha3,
 		}
 	}
-}
 
-func AttachCurrencyCode(cldr *CLDR, supplemental *SupplementalData) {
 	for _, i := range supplemental.CodeMappings.CurrencyCodes {
 		if _, ok := cldr.Currencies[i.Type]; !ok {
 			cldr.Currencies[i.Type] = &Currency{

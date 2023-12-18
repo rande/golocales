@@ -28,6 +28,9 @@ func AttachCurrencies(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 	list := cldr.GetValidity("currency", "regular")
 
+	// fmt.Printf("[%s] Loading currencies %#v %d\n", locale.Code, list, len(list.List))
+	// fmt.Printf("[%s] Loading currencies %#v %d\n", locale.Code, cldr.Currencies, len(cldr.Currencies))
+
 	if list == nil {
 		fmt.Printf("[%s] No currencies found\n", locale.Code)
 		return

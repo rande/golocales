@@ -122,35 +122,42 @@ func AttachLabels(locale *Locale, cldr *CLDR, ldml *Ldml) {
 
 				// iterate over defined set, and then the aliases
 				for _, p := range period.DayPeriodWidth {
-					key := fmt.Sprintf("p_%s_%s", period.Type, p.Type)
+					baseKey := fmt.Sprintf("p_%s_%s", period.Type, p.Type)
 
-					// Yes, this part should resolve the alias to avoid
-					// nested call, but it's not implemented yet
-					if p.Alias.Path != "" {
-						Func := GenAliasDatePeriodFunc(GetKeyAlias(p.Alias.Path, period.Type, p.Type))
-						Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
+					for name, includes := range map[string][]string{
+						"a": {"am", "pm"},
+						"b": {"am", "pm", "midnight", "noon"},
+						"B": {"morning1", "morning2", "afternoon1", "afternoon2", "evening1", "evening2", "night1", "night2"},
+					} {
+						key := fmt.Sprintf("%s_%s", baseKey, name)
+						// Yes, this part should resolve the alias to avoid
+						// nested call, but it's not implemented yet
+						if p.Alias.Path != "" {
+							Func := GenAliasDatePeriodFunc(GetKeyAlias(p.Alias.Path, period.Type, p.Type, name))
+							Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
 
-						locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
-							Comment: "This is an alias to another configuration",
-							Func:    Func,
+							locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+								Comment: "This is an alias to another configuration",
+								Func:    Func,
+							}
+
+							continue
 						}
 
-						continue
-					}
+						labels := map[string]string{}
 
-					labels := map[string]string{}
+						for _, l := range p.DayPeriod {
+							labels[l.Type] = l.Text
+						}
 
-					for _, l := range p.DayPeriod {
-						labels[l.Type] = l.Text
-					}
+						Func := GenDatePeriodFunc(locale, periods, labels, includes)
+						Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
+						Func = strings.Replace(Func, "formatSystem", key, -1)
 
-					Func := GenDatePeriodFunc(periods, labels)
-					Func = strings.Replace(Func, "calendarSystem", calendar.Type, -1)
-					Func = strings.Replace(Func, "formatSystem", key, -1)
-
-					locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
-						Comment: "No pattern defined, read the periods configuration",
-						Func:    Func,
+						locale.Calendars[calendar.Type].Formatters[key] = CalendarFormatter{
+							Comment: "No pattern defined, read the periods configuration",
+							Func:    Func,
+						}
 					}
 				}
 			}
@@ -321,90 +328,91 @@ func GetPattern(pattern string) (string, string) {
 	case "aa":
 		fallthrough
 	case "aaa":
-		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_abbreviated\")(tm, timeZone)"
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_abbreviated_a\")(tm, timeZone)"
 	case "aaaa":
-		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_wide\")(tm, timeZone)"
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_wide_a\")(tm, timeZone)"
 	case "aaaaa":
-		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_narrow\")(tm, timeZone)"
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_narrow_a\")(tm, timeZone)"
+	case "b":
+		fallthrough
+	case "bb":
+		fallthrough
+	case "bbb":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_abbreviated_b\")(tm, timeZone)"
+	case "bbbb":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_wide_b\")(tm, timeZone)"
+	case "bbbbb":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_narrow_b\")(tm, timeZone)"
+	case "B":
+		fallthrough
+	case "BB":
+		fallthrough
+	case "BBB":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_abbreviated_B\")(tm, timeZone)"
+	case "BBBB":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_wide_B\")(tm, timeZone)"
+	case "BBBBB":
+		return "%s", "l.GetCalendarFormatter(\"calendarSystem\", \"p_format_narrow_B\")(tm, timeZone)"
 	}
 
 	return pattern, ""
 }
 
-func GenDatePeriodFunc(periods []*DayPeriodRule, labels map[string]string) string {
-	Func := `
-	if tz, err := time.LoadLocation(timeZone); err != nil {
-		panic(err)
-	} else {
-		// periods exist, use them
-		t := tm.In(tz)
-		hour := t.Hour()*100 + t.Minute()
-	`
-
+func GenDatePeriodFunc(locale *Locale, periods []*DayPeriodRule, labels map[string]string, includes []string) string {
+	Func := ""
+	once := false
 	// first generate the equal rule
 	for _, v := range periods {
-		if v.At == -1 {
+		if !slices.Contains(includes, v.Type) {
 			continue
 		}
 
 		if label, ok := labels[v.Type]; ok {
-			Func += `if hour == ` + strconv.Itoa(v.At) + ` {
-				return "` + label + `"
-			}
+			once = true
+			if v.At != -1 {
+				Func += `if hour == ` + strconv.Itoa(v.At) + ` {
+					return "` + label + `"
+				}
 			`
-		} else {
-			// fmt.Printf("Unable to find the label for %s\n", v.Type)
-			// Func += `
-			// // Unable to find the label
-			// if hour == ` + strconv.Itoa(v.At) + ` {
-			// 	return "` + v.Type + `"
-			// }
-			// `
-		}
-	}
-
-	// second generate the range rule
-	for _, v := range periods {
-		if v.At != -1 {
-			continue
-		}
-
-		if label, ok := labels[v.Type]; ok {
-
-			if v.Before > v.From {
+			} else if v.Before > v.From {
 				Func += `if hour >= ` + strconv.Itoa(v.From) + ` && hour < ` + strconv.Itoa(v.Before) + ` {
 					return "` + label + `"
 				}
-				`
+			`
 			} else {
 				Func += `if (hour >= ` + strconv.Itoa(v.From) + ` && hour < 2400) || (hour >= 0 && hour < ` + strconv.Itoa(v.Before) + `) {
 					return "` + label + `"
 				}
-				`
+			`
 			}
-		} else {
-			// Func += `
-			// // unable to find the label
-			// if hour >= ` + strconv.Itoa(v.From) + ` && hour < ` + strconv.Itoa(v.Before) + ` {
-			// 	return "` + v.Type + `"
-			// }
-			// `
 		}
 	}
 
-	// Func += `
-	// if l.Name == "root" {
-	// 	return t.Format("PM")
-	// }
-	// `
-	Func += "}\n"
+	if once {
+		Func = `
+		if tz, err := time.LoadLocation(timeZone); err != nil {
+			panic(err)
+		} else {
+			// periods exist, use them
+			t := tm.In(tz)
+			hour := t.Hour()*100 + t.Minute()
 
-	Func += `return l.Parent.GetCalendarFormatter("calendarSystem", "formatSystem")(tm, timeZone)`
+		` + Func + `
+
+		}
+		`
+	}
+
+	if locale.Code == "root" {
+		Func += `return tm.Format("PM")`
+	} else {
+		Func += `return l.Parent.GetCalendarFormatter("calendarSystem", "formatSystem")(tm, timeZone)`
+	}
 
 	return Func
 }
 
-func GetKeyAlias(alias, context, ptype string) string {
+func GetKeyAlias(alias, context, ptype, name string) string {
 	aliases := ReadAlias(alias)
 
 	if len(aliases) == 0 {
@@ -412,11 +420,11 @@ func GetKeyAlias(alias, context, ptype string) string {
 	}
 
 	if len(aliases) == 1 {
-		return fmt.Sprintf("p_%s_%s", context, aliases[0])
+		return fmt.Sprintf("p_%s_%s_%s", context, aliases[0], name)
 	}
 
 	if len(aliases) == 2 {
-		return fmt.Sprintf("p_%s_%s", aliases[0], aliases[1])
+		return fmt.Sprintf("p_%s_%s_%s", aliases[0], aliases[1], name)
 	}
 
 	panic("Unsupported chain, please check alis: " + alias)

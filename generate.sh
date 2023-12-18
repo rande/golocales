@@ -25,4 +25,4 @@ rm -rf locales/*
 
 du -sh locales
 
-#go test .
+go test .

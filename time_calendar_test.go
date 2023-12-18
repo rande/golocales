@@ -46,5 +46,5 @@ func Test_Calendar_TimeShortFormat(t *testing.T) {
 
 	formatter := l_hi.GetCalendarFormatter("gregorian", "time_short")
 
-	assert.Equal(t, "2:01 रात", formatter(tm, "Europe/Paris"))
+	assert.Equal(t, "2:01 am", formatter(tm, "Europe/Paris"))
 }

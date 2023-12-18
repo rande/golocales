@@ -77,7 +77,7 @@ func WriteGo(filename, basePath string, cldr *CLDR) error {
 	tpl := template.Must(template.ParseFS(fs, "templates/"+filename+".tmpl"))
 
 	ctx := map[string]interface{}{
-		"Cldr":   cldr,
+		"Cldr": cldr,
 	}
 
 	tpl.Execute(f, ctx)

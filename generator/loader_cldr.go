@@ -50,7 +50,6 @@ func LoadCLDR(CldrPath string) *CLDR {
 		}
 
 		handler(cldr, supplemental)
-
 	}
 
 	// load supplemental files
